@@ -1,0 +1,27 @@
+{
+  "name": "cosc2769_group_sever_fullstackdev_rmit_2024b",
+  "version": "1.0.0",
+  "description": "Sever Side for CrabNest",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kyle8Bits/COSC2769_Group_Sever_FullStackDev_RMIT_2024B.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Kyle8Bits/COSC2769_Group_Sever_FullStackDev_RMIT_2024B/issues"
+  },
+  "homepage": "https://github.com/Kyle8Bits/COSC2769_Group_Sever_FullStackDev_RMIT_2024B#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "mongodb": "^6.8.0",
+    "mongoose": "^8.5.3",
+    "nodemon": "^3.1.4"
+  }
+}
