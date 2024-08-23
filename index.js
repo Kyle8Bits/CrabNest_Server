@@ -27,6 +27,7 @@ app.get('/getUsers',(req,res)=>{
     .catch(err => res.json(err))
 })
 
+
 app.listen(1414, ()=>{
     console.log("Sever is running")
 })
