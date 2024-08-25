@@ -14,6 +14,7 @@ function Login() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': 'pass' // Add the Authorization header here
             },
             body: JSON.stringify({ username, password }),
         })

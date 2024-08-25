@@ -5,11 +5,12 @@ const GroupSchema = new mongoose.Schema({
     description: { type: String }, // Group description
     isPrivate: { type: Boolean, default: false }, // Group visibility
 
+    banner: { type: String }, // URL or path to the group's banner image
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Group members
     admins: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Group admins
     posts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }], // Posts in the group
 
-    waitlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    waitlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Users waiting to join the group
 
     createdAt: { type: Date, default: Date.now } // Group creation timestamp
 });

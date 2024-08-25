@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const UserSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true }, // Unique username
@@ -8,6 +8,7 @@ const UserSchema = new mongoose.Schema({
     password: { type: String, required: true }, // Hashed password
 
     bio: { type: String }, // Short biography or description
+    avatar: { type: String }, // URL or path to the user's avatar image
     info: [
         {
             role: { type: String, enum: ['work', 'study'], required: true }, // Role: 'work' or 'study'
@@ -22,12 +23,12 @@ const UserSchema = new mongoose.Schema({
 
     createdAt: { type: Date, default: Date.now }, // Account creation timestamp
     updatedAt: { type: Date, default: Date.now } // Profile last updated timestamp
-});
+},{ collection: 'user' });
 
 UserSchema.pre('save', function(next) {
     this.updatedAt = Date.now();
     next();
 });
 
-const User = mongoose.model('User', UserSchema);
+const User = mongoose.model('user', UserSchema);
 module.exports = User;
