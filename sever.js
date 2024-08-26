@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
+const friendRoutes = require ('./routes/friendRoute')
 
 const app = express();
 
@@ -11,6 +12,8 @@ app.use(express.json());
 connectDB();
 
 app.use('/', userRoutes); // Use the routes
+
+app.use('/', friendRoutes);
 
 app.listen(1414, () => {
     console.log('Server is running on port 1414');
