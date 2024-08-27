@@ -27,4 +27,27 @@ const getFriends = async (req, res) => {
     }
 }
 
-module.exports = { getFriends };
+const deleteFriendship = async (req, res) => {
+    try {
+        const { requester, recipient } = req.body;
+
+        // Find and delete the friendship where requester and recipient match
+        const result = await Friendship.findOneAndDelete({
+            $or: [
+                { requester, recipient },
+                { requester: recipient, recipient: requester }
+            ]
+        });
+
+        if (!result) {
+            return res.status(404).json({ message: 'Friendship not found' });
+        }
+
+        res.status(200).json({ message: 'Friendship deleted successfully' });
+    } catch (error) {
+        console.error('Error in deleteFriendship:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+module.exports = { getFriends, deleteFriendship };
