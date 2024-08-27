@@ -13,7 +13,7 @@ connectDB();
 
 app.use('/', userRoutes); // Use the routes
 
-app.use('/', friendRoutes);
+app.use('/friend', friendRoutes);
 
 app.listen(1414, () => {
     console.log('Server is running on port 1414');
