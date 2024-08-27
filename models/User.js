@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const bcrypt = require('bcrypt')
 
 const UserSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true }, // Unique username
@@ -25,8 +26,18 @@ const UserSchema = new mongoose.Schema({
     updatedAt: { type: Date, default: Date.now } // Profile last updated timestamp
 },{ collection: 'user' });
 
-UserSchema.pre('save', function(next) {
-    this.updatedAt = Date.now();
+UserSchema.pre('save', async function(next) {
+    const user = this;
+
+    // Hash the password if it has been modified (or is new)
+    if (user.isModified('password')) {
+        try {
+            const salt = await bcrypt.genSalt(10); // Generate a salt
+            user.password = await bcrypt.hash(user.password, salt); // Hash the password
+        } catch (err) {
+            return next(err);
+        }
+    }
     next();
 });
 
