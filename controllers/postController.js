@@ -4,7 +4,6 @@ const Post = require('../models/Post');
 const getPosts = async (req, res) => {
     try {
         const posts = await Post.find();
-        console.log('Fetched posts:', posts);
         res.status(200).json(posts);
     } catch (error) {
         console.error('Error fetching posts:', error.message);
