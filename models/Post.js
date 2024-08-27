@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const PostSchema = new mongoose.Schema({
-    author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Post author
+    author: { type: String, require: true }, // Post author
     content: { type: String, required: true }, // Post content
     images: [String], // Array of image URLs (optional)
     visibility: { type: String, enum: ['Public', 'Friend', 'Group'], default: 'Public' }, // Post visibility
@@ -20,7 +20,7 @@ const PostSchema = new mongoose.Schema({
     ], // Edit history of the post
 
     createdAt: { type: Date, default: Date.now } // Post creation timestamp
-});
+},{collection: 'post'});
 
 const Post = mongoose.model('Post', PostSchema);
 module.exports = Post;
