@@ -2,11 +2,10 @@ const Post = require('../models/Post');
 const User = require('../models/User');
 const Friendship = require('../models/Friendship');
 
-// Get posts by author's username with visibility filtering
 const getPostsByUser = async (req, res) => {
     const username = req.params.username;
-    const requestingUserId = req.user ? req.user._id : null; // Assuming req.user is set by authentication middleware
-    const requestingUsername = req.user ? req.user.username : null; // Assuming username is available in req.user
+    const requestingUserId = req.user ? req.user._id : null;
+    const requestingUsername = req.user ? req.user.username : null;
 
     try {
         // Find the user by username
@@ -41,12 +40,14 @@ const getPostsByUser = async (req, res) => {
             author: user._id,
             $or: visibilityConditions
         }).populate('author', 'name avatar');
-        
+
         res.status(200).json(posts);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error fetching posts:', error.message);
+        res.status(500).json({ message: 'Server error while fetching posts' });
     }
 };
+
 
 // Get all posts
 const getPosts = async (req, res) => {
