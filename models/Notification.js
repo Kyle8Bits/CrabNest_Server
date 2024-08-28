@@ -9,7 +9,7 @@ const NotificationSchema = new mongoose.Schema({
     read: { type: Boolean, default: false }, // Read status
 
     createdAt: { type: Date, default: Date.now } // Notification creation timestamp
-});
+},{collection: 'notification'});
 
 const Notification = mongoose.model('Notification', NotificationSchema);
 module.exports = Notification;

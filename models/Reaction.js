@@ -8,7 +8,7 @@ const ReactionSchema = new mongoose.Schema({
     targetId: { type: mongoose.Schema.Types.ObjectId, refPath: 'targetType', required: true }, // Target post or comment
 
     createdAt: { type: Date, default: Date.now } // Reaction creation timestamp
-});
+},{collection: 'reaction'});
 
 const Reaction = mongoose.model('Reaction', ReactionSchema);
 module.exports = Reaction;

@@ -5,14 +5,16 @@ const {
     getPostById,
     createPost,
     updatePost,
-    deletePost
+    deletePost,
+    getPostsForUser,
 } = require('../controllers/postController');
 
 // Define the routes
-router.get('/', getPosts);
+router.get('/getPost', getPosts);
 router.get('/:id', getPostById);
 router.post('/', createPost);
 router.put('/:id', updatePost);
 router.delete('/:id', deletePost);
-
+router.get('/posts/:userId', getPostsForUser);
+  
 module.exports = router;

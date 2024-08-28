@@ -1,53 +1,48 @@
 const Post = require('../models/Post');
 const User = require('../models/User');
+// Assuming you have a Friendship model defined with a method to check friendship
 const Friendship = require('../models/Friendship');
 
-const getPostsByUser = async (req, res) => {
-    const username = req.params.username;
-    const requestingUserId = req.user ? req.user._id : null;
-    const requestingUsername = req.user ? req.user.username : null;
-
+// Define the isFriend function within the postController
+async function isFriend(userId1, userId2) {
+    console.log(`Checking friendship between ${userId1} and ${userId2}`);
+    const friendship = await Friendship.findOne({
+      $or: [
+        { requester: userId1, recipient: userId2 },
+        { requester: userId2, recipient: userId1 }
+      ],
+      status: 'accepted'
+      
+    });
+    console.log('Friendship status:', friendship);
+    return !!friendship; // Return true if they are friends, otherwise false
+  }
+  
+  // Controller function to get posts based on friendship status
+  async function getPostsForUser(req, res) {
+    const viewerId = req.user._id; // Assuming the user is authenticated and their ID is available
+    const posterId = req.params.userId; // ID of the user whose posts are being requested
+  
     try {
-        // Find the user by username
-        const user = await User.findOne({ username });
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        // Initialize visibility conditions
-        const visibilityConditions = [{ visibility: 'public' }];
-
-        // If the requester is the author, include private posts
-        if (requestingUserId && requestingUserId.equals(user._id)) {
-            visibilityConditions.push({ visibility: 'private' });
-        } else if (requestingUsername) {
-            // Check if the requester and the author are friends
-            const friendship = await Friendship.findOne({
-                $or: [
-                    { requester: requestingUsername, recipient: username, status: 'Accepted' },
-                    { requester: username, recipient: requestingUsername, status: 'Accepted' }
-                ]
-            });
-
-            // If they are friends, include friend-visible posts
-            if (friendship) {
-                visibilityConditions.push({ visibility: 'friend' });
-            }
-        }
-
-        // Find posts by this user that match the visibility conditions
-        const posts = await Post.find({
-            author: user._id,
-            $or: visibilityConditions
-        }).populate('author', 'name avatar');
-
-        res.status(200).json(posts);
+      // Check if the viewer and the poster are friends
+      const friends = await isFriend(viewerId, posterId);
+      console.log(`Are they friends? ${friends}`);
+  
+      // Define the filter condition based on friendship status
+      const visibilityFilter = friends ? ['public', 'friend'] : ['public'];
+      console.log('Visibility filter:', visibilityFilter);
+      // Fetch posts based on the determined visibility
+      const posts = await Post.find({
+        author: posterId,
+        visibility: { $in: visibilityFilter }
+      }).sort({ createdAt: -1 });
+      
+      console.log('Posts found:', posts);
+      res.json(posts);
     } catch (error) {
-        console.error('Error fetching posts:', error.message);
-        res.status(500).json({ message: 'Server error while fetching posts' });
+      res.status(500).json({ error: 'Unable to fetch posts' });
     }
-};
-
+  }
 
 // Get all posts
 const getPosts = async (req, res) => {
@@ -136,5 +131,5 @@ module.exports = {
     createPost,
     updatePost,
     deletePost,
-    getPostsByUser,
+    getPostsForUser,
 };

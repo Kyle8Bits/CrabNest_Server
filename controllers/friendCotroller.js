@@ -29,12 +29,12 @@ const getFriends = async (req, res) => {
 
 const deleteFriendship = async (req, res) => {
     try {
-        const { requester, recipient } = req.body;
+        const { requester, recipient } = req.body; //nguyechau kyle
 
         // Find and delete the friendship where requester and recipient match
         const result = await Friendship.findOneAndDelete({
             $or: [
-                { requester, recipient },
+                { requester, recipient }, 
                 { requester: recipient, recipient: requester }
             ]
         });
