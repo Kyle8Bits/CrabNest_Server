@@ -12,6 +12,6 @@ const router = express.Router();
 
 router.post('/register', registerUser);
 router.post('/login', loggingMiddleware, validateLoginData, authMiddleware, loginUser);
-router.put('/profile',upload.single('avatar'), updateUserProfile);
+router.put('/profile', upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'banner', maxCount: 1 }]), updateUserProfile);
 
 module.exports = router;

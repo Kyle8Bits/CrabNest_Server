@@ -9,7 +9,7 @@ const GroupSchema = new mongoose.Schema({
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Group members
     admins: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Group admins
     posts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }], // Posts in the group
-
+    status:[{type:String, enum: ['Approved', 'Pending'], required: true}],
     waitlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Users waiting to join the group
 
     createdAt: { type: Date, default: Date.now } // Group creation timestamp
