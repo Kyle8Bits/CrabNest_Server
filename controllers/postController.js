@@ -11,40 +11,52 @@ async function isFriend(userId1, userId2) {
         { requester: userId1, recipient: userId2 },
         { requester: userId2, recipient: userId1 }
       ],
-      status: 'accepted'
+      status: 'Accepted'
       
     });
-    console.log('Friendship status:', friendship);
     return !!friendship; // Return true if they are friends, otherwise false
   }
   
   // Controller function to get posts based on friendship status
-  async function getPostsForUser(req, res) {
-    const viewerId = req.user._id; // Assuming the user is authenticated and their ID is available
-    const posterId = req.params.userId; // ID of the user whose posts are being requested
-  
+  const getPostsForUser = async (req, res) => {
     try {
-      // Check if the viewer and the poster are friends
-      const friends = await isFriend(viewerId, posterId);
-      console.log(`Are they friends? ${friends}`);
-  
-      // Define the filter condition based on friendship status
-      const visibilityFilter = friends ? ['public', 'friend'] : ['public'];
-      console.log('Visibility filter:', visibilityFilter);
-      // Fetch posts based on the determined visibility
-      const posts = await Post.find({
-        author: posterId,
-        visibility: { $in: visibilityFilter }
-      }).sort({ createdAt: -1 });
-      
-      console.log('Posts found:', posts);
-      res.json(posts);
-    } catch (error) {
-      res.status(500).json({ error: 'Unable to fetch posts' });
-    }
-  }
+        const currentUser = req.headers.username;
 
-// Get all posts
+        let publicPosts = await Post.find({ visibility: 'Public' });
+
+        // Get all friend posts
+        let friendPosts = await Post.find({ visibility: 'Friend' });
+
+        // Filter friend posts by checking if the author is a friend of the current user
+        let postsFromFriends = [];
+
+        for (let post of friendPosts) {
+            if (await isFriend(currentUser, post.author)) {
+                postsFromFriends.push(post);
+            }
+        }
+
+        const allPosts = [...publicPosts, ...postsFromFriends];
+
+        const result = await Promise.all(allPosts.map(async (post) => {
+            const user = await User.findOne({ username: post.author });
+            return {
+                fullname: user.fullName,
+                avatar: user.avatar,
+                post: post
+            };
+        }));
+
+
+        res.json(result);
+    } catch (error) {
+        console.error('Error fetching posts:', error.message);
+        res.status(500).json({ error: 'Unable to fetch posts' });
+    }
+};
+
+
+// Get all post
 const getPosts = async (req, res) => {
     try {
         const posts = await Post.find();
