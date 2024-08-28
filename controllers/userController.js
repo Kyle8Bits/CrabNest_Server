@@ -1,4 +1,5 @@
 // controllers/userController.js
+const { retry } = require('@reduxjs/toolkit/query');
 const User = require('../models/User'); // Assuming you have a User model defined
 const bcrypt = require('bcrypt');
 const path = require('path');
@@ -38,9 +39,18 @@ const registerUser = async (req, res) => {
             return res.status(400).json({ message: 'Username or Email already exists' });
         }
 
+        if (phone && !isValidPhoneNumber(phone)) {
+            return res.status(400).json({ message: 'Invalid phone number. It should be exactly 10 digits.' });
+        }
+
+        const existingPhone =  await User.findOne({ phone });
+        if(existingPhone){
+            return res.status(400).json({ message: 'This phone number already used' });
+        }
+
         // Define the default avatar and banner paths
-        const defaultAvatar = '/image/default-avatar.jpg';
-        const defaultBanner = '/image/default-banner.jpg';
+        const defaultAvatar = '/uploads/avatar/default-avatar.jpg';
+        const defaultBanner = '/uploads/banner/default-banner.jpg';
 
         // Create a new user with default images if none are provided
         const newUser = new User({
@@ -50,8 +60,8 @@ const registerUser = async (req, res) => {
             phone,
             password,
             bio: "No bio yet",
-            avatar: '', // Set the default avatar path
-            banner: ''// Set the default banner path
+            avatar: defaultAvatar, // Set the default avatar path
+            banner: defaultBanner,// Set the default banner path
         });
 
         await newUser.save();
@@ -60,6 +70,13 @@ const registerUser = async (req, res) => {
         console.error('Error in registerUser:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
+};
+
+
+const isValidPhoneNumber = (phone) => {
+    // Check if the phone number is a string of exactly 10 digits
+    const phoneRegex = /^\d{10}$/;
+    return phoneRegex.test(phone);
 };
 
 const updateUserProfile = async (req, res) => {
@@ -73,6 +90,10 @@ const updateUserProfile = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
+        if (phone && !isValidPhoneNumber(phone)) {
+            return res.status(400).json({ message: 'Invalid phone number. It should be exactly 10 digits.' });
+        }
+
         // Update the user profile fields
         user.username = username || user.username;
         user.fullName = fullName || user.fullName;
@@ -81,8 +102,31 @@ const updateUserProfile = async (req, res) => {
         user.bio = bio || user.bio;
 
         // Handle the avatar upload
-        if (req.file) {
-            user.avatar = `/uploads/${req.file.filename}`;
+        if (req.files.avatar) {
+            user.avatar = `/uploads/avatar/${req.files.avatar[0].filename}`;
+        }
+
+        // Handle the banner upload
+        if (req.files.banner) {
+            user.banner = `/uploads/banner/${req.files.banner[0].filename}`;
+        }
+
+
+        if (req.files.avatar) {
+            const avatarFileType = path.extname(req.files.avatar[0].filename).toLowerCase();
+            if (!['.jpg', '.jpeg', '.png'].includes(avatarFileType)) {
+                return res.status(400).json({ message: 'Invalid avatar file type. Only .jpg, .jpeg, and .png are allowed.' });
+            }
+            user.avatar = `/uploads/avatar/${req.files.avatar[0].filename}`;
+        }
+
+        // File type validation for banner
+        if (req.files.banner) {
+            const bannerFileType = path.extname(req.files.banner[0].filename).toLowerCase();
+            if (!['.jpg', '.jpeg', '.png'].includes(bannerFileType)) {
+                return res.status(400).json({ message: 'Invalid banner file type. Only .jpg, .jpeg, and .png are allowed.' });
+            }
+            user.banner = `/uploads/banner/${req.files.banner[0].filename}`;
         }
 
         // Save the updated user profile
@@ -94,5 +138,6 @@ const updateUserProfile = async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
 
 module.exports = { loginUser, registerUser, updateUserProfile };
