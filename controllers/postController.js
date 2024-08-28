@@ -1,4 +1,52 @@
 const Post = require('../models/Post');
+const User = require('../models/User');
+const Friendship = require('../models/Friendship');
+
+// Get posts by author's username with visibility filtering
+const getPostsByUser = async (req, res) => {
+    const username = req.params.username;
+    const requestingUserId = req.user ? req.user._id : null; // Assuming req.user is set by authentication middleware
+    const requestingUsername = req.user ? req.user.username : null; // Assuming username is available in req.user
+
+    try {
+        // Find the user by username
+        const user = await User.findOne({ username });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Initialize visibility conditions
+        const visibilityConditions = [{ visibility: 'public' }];
+
+        // If the requester is the author, include private posts
+        if (requestingUserId && requestingUserId.equals(user._id)) {
+            visibilityConditions.push({ visibility: 'private' });
+        } else if (requestingUsername) {
+            // Check if the requester and the author are friends
+            const friendship = await Friendship.findOne({
+                $or: [
+                    { requester: requestingUsername, recipient: username, status: 'Accepted' },
+                    { requester: username, recipient: requestingUsername, status: 'Accepted' }
+                ]
+            });
+
+            // If they are friends, include friend-visible posts
+            if (friendship) {
+                visibilityConditions.push({ visibility: 'friend' });
+            }
+        }
+
+        // Find posts by this user that match the visibility conditions
+        const posts = await Post.find({
+            author: user._id,
+            $or: visibilityConditions
+        }).populate('author', 'name avatar');
+        
+        res.status(200).json(posts);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
 // Get all posts
 const getPosts = async (req, res) => {
@@ -80,10 +128,12 @@ const deletePost = async (req, res) => {
     }
 };
 
+
 module.exports = {
     getPosts,
     getPostById,
     createPost,
     updatePost,
     deletePost,
+    getPostsByUser,
 };
