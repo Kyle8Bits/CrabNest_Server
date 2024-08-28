@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const connectDB = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
 const friendRoutes = require ('./routes/friendRoute')
@@ -10,6 +11,8 @@ app.use(cors());
 app.use(express.json());
 
 connectDB();
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/', userRoutes); // Use the routes
 

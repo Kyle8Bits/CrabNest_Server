@@ -16,6 +16,7 @@ const UserSchema = new mongoose.Schema({
             place: { type: String, required: true } // Associated place (e.g., company or school)
         }
     ],
+    banner:{type: String},
 
     sharedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }], // Posts shared by the user
 
