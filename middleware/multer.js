@@ -22,7 +22,7 @@ const upload = multer({
     storage: storage,
     limits: { fileSize: 1000000 }, // Set file size limit (optional)
     fileFilter: (req, file, cb) => {
-        const filetypes = /jpeg|jpg|png/; // Allowed extensions
+        const filetypes = /jpeg|jpg|png|PNG|JPEG|JPG/; // Allowed extensions
         const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
         const mimetype = filetypes.test(file.mimetype);
 
