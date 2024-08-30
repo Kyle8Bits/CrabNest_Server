@@ -1,5 +1,5 @@
 // controllers/userController.js
-const { retry } = require('@reduxjs/toolkit/query');
+
 const User = require('../models/User'); // Assuming you have a User model defined
 const bcrypt = require('bcrypt');
 const path = require('path');
@@ -188,20 +188,18 @@ const getUser = async (req, res) => {
 };
 
 const searchUsers = async (req, res) => {
-    const searchTerm = req.query.q; // Get the search term from the query string
+    const searchTerm = req.query.searchTerm; // Get the search term from the query string
 
     try {
         // Find users where the username or fullName matches the search term, excluding specified fields
         const users = await User.find(
             {
-                $or: [
-                    { username: { $regex: searchTerm, $options: 'i' } }, // Case-insensitive search for username
-                    { fullName: { $regex: searchTerm, $options: 'i' } }  // Case-insensitive search for fullName
-                ]
+                fullName: { $regex: searchTerm, $options: 'i' } // Case-insensitive search for fullName only
             },
             '-password -isSuspended -createdAt -updatedAt'
         );
 
+        console.log(users);
         // Send the filtered users as a response
         res.status(200).json(users);
     } catch (err) {
