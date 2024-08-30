@@ -147,9 +147,9 @@ const updateUserProfile = async (req, res) => {
 const getUser = async (req, res) => {
     try {
         const username = req.params.username; // Route parameter
-
+        console.log("displaying user", username)
         const currentUser = req.query.currentUser;  // Query parameter
-
+        console.log("Curretn user", currentUser)
 
         // Retrieve user information based on the route parameter (username)
         const user = await User.findOne({ username }).select('-password');
@@ -161,7 +161,7 @@ const getUser = async (req, res) => {
         // Check friendship status between the current user and the requested user
         const friendshipStatus = await isFriend(username, currentUser);
 
-        console.log(friendshipStatus);
+        console.log("Friendship status", friendshipStatus);
 
         // Return the user information along with friendship status
         return res.json({
@@ -187,5 +187,29 @@ const getUser = async (req, res) => {
     }
 };
 
+const searchUsers = async (req, res) => {
+    const searchTerm = req.query.q; // Get the search term from the query string
 
-module.exports = { loginUser, registerUser, updateUserProfile, getUser };
+    try {
+        // Find users where the username or fullName matches the search term, excluding specified fields
+        const users = await User.find(
+            {
+                $or: [
+                    { username: { $regex: searchTerm, $options: 'i' } }, // Case-insensitive search for username
+                    { fullName: { $regex: searchTerm, $options: 'i' } }  // Case-insensitive search for fullName
+                ]
+            },
+            '-password -isSuspended -createdAt -updatedAt'
+        );
+
+        // Send the filtered users as a response
+        res.status(200).json(users);
+    } catch (err) {
+        console.log(err)
+        // Handle any errors that occur
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+};
+
+
+module.exports = { loginUser, registerUser, updateUserProfile, getUser, searchUsers };
