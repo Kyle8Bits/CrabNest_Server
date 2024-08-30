@@ -39,6 +39,8 @@ const deleteFriendship = async (req, res) => {
             ]
         });
 
+        console.log(requester, recipient)
+
         if (!result) {
             return res.status(404).json({ message: 'Friendship not found' });
         }

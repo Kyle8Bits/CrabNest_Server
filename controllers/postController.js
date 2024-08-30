@@ -144,4 +144,5 @@ module.exports = {
     updatePost,
     deletePost,
     getPostsForUser,
+    isFriend
 };
