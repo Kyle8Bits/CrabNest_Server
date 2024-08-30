@@ -16,7 +16,7 @@ const CommentSchema = new mongoose.Schema({
     ], // Edit history of the comment
 
     createdAt: { type: Date, default: Date.now } // Comment creation timestamp
-});
+}, { collection: 'comment'});
 
 const Comment = mongoose.model('Comment', CommentSchema);
 module.exports = Comment;
