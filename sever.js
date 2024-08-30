@@ -20,6 +20,7 @@ app.use('/friend', friendRoutes);
 
 app.use('/posts',postRoutes);
 
+
 app.listen(1414, () => {
     console.log('Server is running on port 1414');
 });

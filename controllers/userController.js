@@ -3,6 +3,7 @@ const { retry } = require('@reduxjs/toolkit/query');
 const User = require('../models/User'); // Assuming you have a User model defined
 const bcrypt = require('bcrypt');
 const path = require('path');
+const {isFriend} = require('./postController')
 
 const loginUser = async (req, res) => {
     try {
@@ -13,6 +14,10 @@ const loginUser = async (req, res) => {
         if (!user) {
             console.log(username, password)
             return res.status(401).json({ message: 'The username does not exist' });
+        }
+
+        if(user.isSuspended){
+            return res.status(401).json({ message: 'This account is banned from CrabNest' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -139,5 +144,48 @@ const updateUserProfile = async (req, res) => {
     }
 };
 
+const getUser = async (req, res) => {
+    try {
+        const username = req.params.username; // Route parameter
 
-module.exports = { loginUser, registerUser, updateUserProfile };
+        const currentUser = req.query.currentUser;  // Query parameter
+
+
+        // Retrieve user information based on the route parameter (username)
+        const user = await User.findOne({ username }).select('-password');
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Check friendship status between the current user and the requested user
+        const friendshipStatus = await isFriend(username, currentUser);
+
+        console.log(friendshipStatus);
+
+        // Return the user information along with friendship status
+        return res.json({
+            user: {
+                username: user.username,
+                fullName: user.fullName,
+                email: user.email,
+                phone: user.phone,
+                bio: user.bio,
+                avatar: user.avatar,
+                banner: user.banner,
+                sharedPosts: user.sharedPosts,
+                isAdmin: user.isAdmin,
+                isSuspended: user.isSuspended,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt,
+            },
+            isFriend: friendshipStatus
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
+module.exports = { loginUser, registerUser, updateUserProfile, getUser };
