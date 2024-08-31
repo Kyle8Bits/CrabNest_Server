@@ -5,6 +5,7 @@ const connectDB = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
 const friendRoutes = require ('./routes/friendRoute')
 const postRoutes = require('./routes/postRoute')
+const adminRouter = require('./routes/adminRoute')
 const app = express();
 
 app.use(cors());
@@ -19,6 +20,8 @@ app.use('/', userRoutes); // Use the routes
 app.use('/friend', friendRoutes);
 
 app.use('/posts',postRoutes);
+
+app.use('/admin',adminRouter);
 
 
 app.listen(1414, () => {

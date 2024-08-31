@@ -161,7 +161,7 @@ const getUser = async (req, res) => {
         // Check friendship status between the current user and the requested user
         const friendshipStatus = await isFriend(username, currentUser);
 
-        console.log("Friendship status", friendshipStatus);
+
 
         // Return the user information along with friendship status
         return res.json({
@@ -182,6 +182,9 @@ const getUser = async (req, res) => {
             isFriend: friendshipStatus
         });
     } catch (error) {
+        switch(error.status) {
+            
+        }
         console.error(error);
         return res.status(500).json({ message: 'Server error' });
     }
@@ -191,7 +194,7 @@ const searchUsers = async (req, res) => {
     const searchTerm = req.query.searchTerm; // Get the search term from the query string
 
     try {
-        // Find users where the username or fullName matches the search term, excluding specified fields
+        // Find users where the fullName matches the search term, excluding specified fields
         const users = await User.find(
             {
                 fullName: { $regex: searchTerm, $options: 'i' } // Case-insensitive search for fullName only
@@ -199,15 +202,20 @@ const searchUsers = async (req, res) => {
             '-password -isSuspended -createdAt -updatedAt'
         );
 
-        console.log(users);
-        // Send the filtered users as a response
-        res.status(200).json(users);
+        // Transform the data to match the requested format
+        const result = users.map(user => ({
+            searchTerm: searchTerm,
+            user: user
+        }));
+
+        // console.log(result);
+        // Send the transformed data as a response
+        res.status(200).json(result);
     } catch (err) {
-        console.log(err)
+        console.log(err);
         // Handle any errors that occur
         res.status(500).json({ message: 'Server error', error: err.message });
     }
 };
-
 
 module.exports = { loginUser, registerUser, updateUserProfile, getUser, searchUsers };
