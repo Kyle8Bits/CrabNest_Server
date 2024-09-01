@@ -1,5 +1,6 @@
 const Post = require('../models/Post');
 const User = require('../models/User');
+const mongoose = require('mongoose');
 // Assuming you have a Friendship model defined with a method to check friendship
 const Friendship = require('../models/Friendship');
 
@@ -22,16 +23,18 @@ async function isFriend(userId1, userId2) {
     try {
         const currentUser = req.headers.username;
 
-        let publicPosts = await Post.find({ visibility: 'Public' });
+        let publicPosts = await Post.find({ visibility: 'Public', group: null});
 
         // Get all friend posts
-        let friendPosts = await Post.find({ visibility: 'Friend' });
+        let friendPosts = await Post.find({ visibility: 'Friend', group: null });
+
 
         // Filter friend posts by checking if the author is a friend of the current user
         let postsFromFriends = [];
 
         for (let post of friendPosts) {
             if (await isFriend(currentUser, post.author)) {
+
                 postsFromFriends.push(post);
             }
         }
@@ -39,7 +42,7 @@ async function isFriend(userId1, userId2) {
         const allPosts = [...publicPosts, ...postsFromFriends];
 
         const result = await Promise.all(allPosts.map(async (post) => {
-            const user = await User.findOne({ username: post.author });
+            const user = await User.findOne({ username: post.author }); 
             return {
                 fullname: user.fullName,
                 avatar: user.avatar,
@@ -57,92 +60,141 @@ async function isFriend(userId1, userId2) {
 
 
 // Get all post
-const getPosts = async (req, res) => {
-    try {
-        const posts = await Post.find();
-        res.status(200).json(posts);
-    } catch (error) {
-        console.error('Error fetching posts:', error.message);
-        res.status(500).json({ message: 'Server error while fetching posts' });
-    }
-};
+// const getPosts = async (req, res) => {
+//     try {
+//         const posts = await Post.find();
+//         res.status(200).json(posts);
+//     } catch (error) {
+//         console.error('Error fetching posts:', error.message);
+//         res.status(500).json({ message: 'Server error while fetching posts' });
+//     }
+// };
 
-// Get a single post by ID
-const getPostById = async (req, res) => {
-    try {
-        const post = await Post.findById(req.params.id);
-        if (!post) {
-            console.log('Post not found:', req.params.id);
-            return res.status(404).json({ message: 'Post not found' });
+// // Get a single post by ID
+// const getPostById = async (req, res) => {
+//     try {
+//         const post = await Post.findById(req.params.id);
+//         if (!post) {
+//             console.log('Post not found:', req.params.id);
+//             return res.status(404).json({ message: 'Post not found' });
+//         }
+//         console.log('Fetched post:', post);
+//         res.status(200).json(post);
+//     } catch (error) {
+//         console.error('Error fetching post by ID:', error.message);
+//         res.status(500).json({ message: 'Server error while fetching post' });
+//     }
+// };
+
+// // Create a new post
+// const createPost = async (req, res) => {
+//     const { author_avatar, author_name, photo, caption } = req.body;
+
+//     const newPost = new Post({
+//         author_avatar,
+//         author_name,
+//         photo,
+//         caption,
+//     });
+
+//     try {
+//         const savedPost = await newPost.save();
+//         console.log('Created new post:', savedPost);
+//         res.status(201).json(savedPost);
+//     } catch (error) {
+//         console.error('Error creating post:', error.message);
+//         res.status(400).json({ message: 'Error creating post' });
+//     }
+// };
+
+// // Update an existing post by ID
+// const updatePost = async (req, res) => {
+//     try {
+//         const updatedPost = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true });
+//         if (!updatedPost) {
+//             console.log('Post not found for update:', req.params.id);
+//             return res.status(404).json({ message: 'Post not found' });
+//         }
+//         console.log('Updated post:', updatedPost);
+//         res.status(200).json(updatedPost);
+//     } catch (error) {
+//         console.error('Error updating post:', error.message);
+//         res.status(400).json({ message: 'Error updating post' });
+//     }
+// };
+
+// // Delete a post by ID
+// const deletePost = async (req, res) => {
+//     try {
+//         const deletedPost = await Post.findByIdAndDelete(req.params.id);
+//         if (!deletedPost) {
+//             console.log('Post not found for deletion:', req.params.id);
+//             return res.status(404).json({ message: 'Post not found' });
+//         }
+//         console.log('Deleted post:', deletedPost);
+//         res.status(200).json({ message: 'Post deleted' });
+//     } catch (error) {
+//         console.error('Error deleting post:', error.message);
+//         res.status(500).json({ message: 'Server error while deleting post' });
+//     }
+// };
+
+const giveReact = async (req, res)=>{
+    try{
+        const { id } = req.body.data;
+        const postId = id.postId;
+        console.log(postId)
+        // Find the post by id and update the reaction by 1
+        const result = await Post.findOneAndUpdate(
+            { id: postId }, // Find the document with the specified _id
+            { $inc: { reactions: 1 } }, // Increment the reactions field by 1
+            { new: true } // Return the updated document
+        );
+
+        if (result) {
+            res.status(200).json({ message: 'Reaction plus 1' });
+        } else {
+            console.log("Post not found")
+            res.status(404).json({ message: `Cannot find this post` });
         }
-        console.log('Fetched post:', post);
-        res.status(200).json(post);
-    } catch (error) {
-        console.error('Error fetching post by ID:', error.message);
-        res.status(500).json({ message: 'Server error while fetching post' });
+    }catch(err){
+        console.error(err);
+        res.status(500).json({msg:"Sever error handling reaction"})
     }
-};
+}
 
-// Create a new post
-const createPost = async (req, res) => {
-    const { author_avatar, author_name, photo, caption } = req.body;
+const deleteReact = async (req, res) =>{
+    try{
+        const { id } = req.body.data;
+        const postId = id.postId;
+        // Find the post by id and update the reaction by 1
+        const result = await Post.findOneAndUpdate(
+            { id: postId }, // Find the document with the specified _id
+            { $inc: { reactions: -1 } }, // Increment the reactions field by 1
+            { new: true } // Return the updated document
+        );
 
-    const newPost = new Post({
-        author_avatar,
-        author_name,
-        photo,
-        caption,
-    });
-
-    try {
-        const savedPost = await newPost.save();
-        console.log('Created new post:', savedPost);
-        res.status(201).json(savedPost);
-    } catch (error) {
-        console.error('Error creating post:', error.message);
-        res.status(400).json({ message: 'Error creating post' });
-    }
-};
-
-// Update an existing post by ID
-const updatePost = async (req, res) => {
-    try {
-        const updatedPost = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!updatedPost) {
-            console.log('Post not found for update:', req.params.id);
-            return res.status(404).json({ message: 'Post not found' });
+        if (result) {
+            res.status(200).json({ message: 'Reaction minus 1' });
+        } else {
+            console.log("Post not found")
+            res.status(404).json({ message: `Cannot find this post` });
         }
-        console.log('Updated post:', updatedPost);
-        res.status(200).json(updatedPost);
-    } catch (error) {
-        console.error('Error updating post:', error.message);
-        res.status(400).json({ message: 'Error updating post' });
+    }catch(err){
+        console.error(err);
+        res.status(500).json({msg:"Sever error handling reaction"})
     }
-};
-
-// Delete a post by ID
-const deletePost = async (req, res) => {
-    try {
-        const deletedPost = await Post.findByIdAndDelete(req.params.id);
-        if (!deletedPost) {
-            console.log('Post not found for deletion:', req.params.id);
-            return res.status(404).json({ message: 'Post not found' });
-        }
-        console.log('Deleted post:', deletedPost);
-        res.status(200).json({ message: 'Post deleted' });
-    } catch (error) {
-        console.error('Error deleting post:', error.message);
-        res.status(500).json({ message: 'Server error while deleting post' });
-    }
-};
+}
 
 
 module.exports = {
-    getPosts,
-    getPostById,
-    createPost,
-    updatePost,
-    deletePost,
+    // getPosts,
+    // getPostById,
+    // createPost,
+    // updatePost,
+    // deletePost,
+    isFriend,
     getPostsForUser,
-    isFriend
+    giveReact,
+    deleteReact,
 };

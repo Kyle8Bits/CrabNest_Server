@@ -7,7 +7,7 @@ const PostSchema = new mongoose.Schema({
     visibility: { type: String, enum: ['Public', 'Friend', 'Group'], default: 'Public' }, // Post visibility
     group: { type: mongoose.Schema.Types.ObjectId, ref: 'Group', default: null }, // Associated group (if applicable)
     
-    reactions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Reaction' }], // Reactions to the post
+    reactions: {type: Number, default: 0},  
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }], // Comments on the post
     sharedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Users who shared the post
 
