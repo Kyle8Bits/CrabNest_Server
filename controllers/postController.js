@@ -87,25 +87,42 @@ async function isFriend(userId1, userId2) {
 // };
 
 // // Create a new post
-// const createPost = async (req, res) => {
-//     const { author_avatar, author_name, photo, caption } = req.body;
+const createPost = async (req, res) => {
+    try {
+        // Extract data from request body
+        const { author, content, images, visibility, group } = req.body;
 
-//     const newPost = new Post({
-//         author_avatar,
-//         author_name,
-//         photo,
-//         caption,
-//     });
+        const date = new Date();
+        const day = (`0${date.getDate()}`).slice(-2);
+        const year = date.getFullYear();
+        const monthNames = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+        const month = monthNames[date.getMonth()];
+        const formattedDate = `${day} ${month} ${year}`;
 
-//     try {
-//         const savedPost = await newPost.save();
-//         console.log('Created new post:', savedPost);
-//         res.status(201).json(savedPost);
-//     } catch (error) {
-//         console.error('Error creating post:', error.message);
-//         res.status(400).json({ message: 'Error creating post' });
-//     }
-// };
+        // Create a new Post instance with data from the request body
+        // Any field not provided will use the default values from the schema
+        const newPost = new Post({
+            author,
+            content,
+            images, // This will default to an empty array if not provided
+            visibility, // This will default to 'Public' if not provided
+            group,// This will default to null if not provided
+            createdAt: formattedDate, 
+        });
+
+        // Save the new post to the database
+        const savedPost = await newPost.save();
+
+        // Send the saved post as a response
+        res.status(201).json(savedPost);
+    } catch (error) {
+        console.error('Error creating post:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
 
 // // Update an existing post by ID
 // const updatePost = async (req, res) => {
@@ -190,7 +207,7 @@ const deleteReact = async (req, res) =>{
 module.exports = {
     // getPosts,
     // getPostById,
-    // createPost,
+    createPost,
     // updatePost,
     // deletePost,
     isFriend,
