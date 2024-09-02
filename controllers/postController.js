@@ -90,7 +90,7 @@ async function isFriend(userId1, userId2) {
 const createPost = async (req, res) => {
     try {
         // Extract data from request body
-        const { author, content, images, visibility, group } = req.body;
+        const { author, content, visibility, group } = req.body;
 
         const date = new Date();
         const day = (`0${date.getDate()}`).slice(-2);
@@ -102,6 +102,16 @@ const createPost = async (req, res) => {
         const month = monthNames[date.getMonth()];
         const formattedDate = `${day} ${month} ${year}`;
 
+
+        const images = [];
+
+        if (req.files && req.files.post) {
+            req.files.post.forEach(file => {
+                images.push(`/uploads/post/${file.filename}`);
+            });
+        }
+        
+        console.log(images)
         // Create a new Post instance with data from the request body
         // Any field not provided will use the default values from the schema
         const newPost = new Post({
