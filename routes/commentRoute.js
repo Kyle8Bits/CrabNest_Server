@@ -3,9 +3,9 @@ const router = express.Router();
 const commentController = require('../controllers/commentController');
 
 // Route to get all comments for a specific post
-router.get('/post/:postId', commentController.getCommentsForPost);
+router.get('/posts/:postId', commentController.getCommentsForPost);
 
 // Route to add a comment to a specific post
-router.post('/post/:postId', commentController.addCommentToPost);
+router.post('/posts/:postId', commentController.addCommentToPost);
 
 module.exports = router;

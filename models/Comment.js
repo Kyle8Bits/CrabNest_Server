@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
 const CommentSchema = new mongoose.Schema({
-    post: { type: mongoose.Schema.Types.ObjectId, ref: 'Post', required: true }, // Associated post
-    author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Comment author
+    post: { type: String, required: true }, // Associated post
+    author: { type: String, required: true }, // Comment author
     content: { type: String, required: true }, // Comment content
 
     reactions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Reaction' }], // Reactions to the comment
