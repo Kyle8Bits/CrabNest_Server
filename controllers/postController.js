@@ -196,13 +196,17 @@ const deletePost = async (req, res) => {
 
 const giveReact = async (req, res)=>{
     try{
-        const { id } = req.body.data;
+        const { id, currentUser } = req.body.data;
+        console.log(id, currentUser)
         const postId = id.postId;
         console.log(postId)
         // Find the post by id and update the reaction by 1
         const result = await Post.findOneAndUpdate(
             { id: postId }, // Find the document with the specified _id
-            { $inc: { reactions: 1 } }, // Increment the reactions field by 1
+            { 
+                $inc: { reactions: 1 }, // Increment the reactions field by 1
+                $push: { reactBy: currentUser } // Push currentUser into reactBy array
+            },
             { new: true } // Return the updated document
         );
 
@@ -220,12 +224,15 @@ const giveReact = async (req, res)=>{
 
 const deleteReact = async (req, res) =>{
     try{
-        const { id } = req.body.data;
+        const { id, currentUser } = req.body.data;
         const postId = id.postId;
         // Find the post by id and update the reaction by 1
         const result = await Post.findOneAndUpdate(
             { id: postId }, // Find the document with the specified _id
-            { $inc: { reactions: -1 } }, // Increment the reactions field by 1
+            { 
+                $inc: { reactions: -1 }, // Decrement the reactions field by 1
+                $pull: { reactBy: currentUser } // Remove currentUser from reactBy array
+            },
             { new: true } // Return the updated document
         );
 

@@ -16,8 +16,8 @@ const PostSchema = new mongoose.Schema({
     group: { type: String, default: null }, // Associated group (if applicable)
     
     reactions: {type: Number, default: 0},  
+    reactBy: [{ type: String }],
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }], // Comments on the post
-
     edited: { type: Boolean, default: false }, // Edit flag
     editHistory: [
         {
