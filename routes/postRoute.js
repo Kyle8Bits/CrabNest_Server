@@ -5,7 +5,7 @@ const {
     getPostById,
     createPost,
     updatePost,
-    // deletePost,
+    deletePost,
     getPostsForUser,
     giveReact,
     deleteReact
@@ -24,7 +24,8 @@ router.post('/deleteReact', deleteReact);
 
 router.post('/createPost', upload.fields([{name: 'post', maxCount: 4}]) ,createPost);
  
-router.put('./updatePost', upload.fields([{name: 'post', maxCount: 4}]),updatePost);
+router.put('/updatePost', upload.fields([{name: 'post', maxCount: 6}]),updatePost);
 
+router.delete('/deletePost', deletePost);
 
 module.exports = router;

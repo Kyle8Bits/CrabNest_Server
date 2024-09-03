@@ -29,6 +29,8 @@ async function isFriend(userId1, userId2) {
         let friendPosts = await Post.find({ visibility: 'Friend', group: null });
 
 
+        let ownFriendPosts = await Post.find({ author: currentUser, visibility: 'Friend', group: null });
+
         // Filter friend posts by checking if the author is a friend of the current user
         let postsFromFriends = [];
 
@@ -39,7 +41,7 @@ async function isFriend(userId1, userId2) {
             }
         }
 
-        const allPosts = [...publicPosts, ...postsFromFriends];
+        const allPosts = [...publicPosts, ...postsFromFriends, ...ownFriendPosts];
 
         const result = await Promise.all(allPosts.map(async (post) => {
             const user = await User.findOne({ username: post.author }); 
@@ -57,18 +59,6 @@ async function isFriend(userId1, userId2) {
         res.status(500).json({ error: 'Unable to fetch posts' });
     }
 };
-
-
-// Get all post
-// const getPosts = async (req, res) => {
-//     try {
-//         const posts = await Post.find();
-//         res.status(200).json(posts);
-//     } catch (error) {
-//         console.error('Error fetching posts:', error.message);
-//         res.status(500).json({ message: 'Server error while fetching posts' });
-//     }
-// };
 
 // Get a single post by ID
 const getPostById = async (req, res) => {
@@ -93,6 +83,7 @@ const getPostById = async (req, res) => {
 // // Create a new post
 const createPost = async (req, res) => {
     try {
+
         // Extract data from request body
         const { author, content, visibility, group } = req.body;
 
@@ -114,6 +105,8 @@ const createPost = async (req, res) => {
                 images.push(`/uploads/post/${file.filename}`);
             });
         }
+
+        console.log(images)
         
         console.log(images)
         // Create a new Post instance with data from the request body
@@ -141,28 +134,65 @@ const createPost = async (req, res) => {
 // Update an existing post by ID
 const updatePost = async (req, res) => {
     try {
+        const postId = req.query.postId;
+
+        const { author, content, visibility, group } = req.body;
+
+        console.log(req.files)
+        console.log(req.body.post)
+        const oldImage = req.body.post
+
+        const images = oldImage ? [oldImage] : [];
+
+        if (req.files && req.files.post) {
+            req.files.post.forEach(file => {
+                images.push(`/uploads/post/${file.filename}`);
+            });
+        }
         
+        const updatedPost = await Post.findOneAndUpdate(
+            { id: postId },
+            {
+                author,
+                content,
+                visibility,
+                group,
+                images: images // Append new images to the existing array
+            },
+            { new: true } // Return the updated document
+        );
+
+        if (!updatedPost) {
+            return res.status(404).json({ message: 'Post not found' });
+        }
+
+        res.status(200).json(updatedPost);
+
+
+
     } catch (error) {
         console.error('Error updating post:', error.message);
         res.status(400).json({ message: 'Error updating post' });
     }
 };
 
-// // Delete a post by ID
-// const deletePost = async (req, res) => {
-//     try {
-//         const deletedPost = await Post.findByIdAndDelete(req.params.id);
-//         if (!deletedPost) {
-//             console.log('Post not found for deletion:', req.params.id);
-//             return res.status(404).json({ message: 'Post not found' });
-//         }
-//         console.log('Deleted post:', deletedPost);
-//         res.status(200).json({ message: 'Post deleted' });
-//     } catch (error) {
-//         console.error('Error deleting post:', error.message);
-//         res.status(500).json({ message: 'Server error while deleting post' });
-//     }
-// };
+// Delete a post by ID
+const deletePost = async (req, res) => {
+    try {
+
+        const postId = req.query.postId;
+        const deletedPost = await Post.findOneAndDelete( { id: postId });
+        if (!deletedPost) {
+            console.log('Post not found for deletion:', req.params.id);
+            return res.status(404).json({ message: 'Post not found' });
+        }
+        console.log('Deleted post:', deletedPost);
+        res.status(200).json({ message: 'Post deleted' });
+    } catch (error) {
+        console.error('Error deleting post:', error.message);
+        res.status(500).json({ message: 'Server error while deleting post' });
+    }
+};
 
 const giveReact = async (req, res)=>{
     try{
@@ -217,7 +247,7 @@ module.exports = {
     getPostById,
     createPost,
     updatePost,
-    // deletePost,
+    deletePost,
     isFriend,
     getPostsForUser,
     giveReact,

@@ -10,7 +10,6 @@ const storage = multer.diskStorage({
         }else if (file.fieldname === 'banner') {
             uploadPath += 'banner';
         }else if (file.fieldname === 'post'){
-            console.log("Post go here")
             uploadPath += 'post'
         }
         cb(null, uploadPath);
