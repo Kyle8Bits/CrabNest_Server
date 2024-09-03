@@ -3,8 +3,9 @@ const cors = require('cors');
 const path = require('path');
 const connectDB = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
-const friendRoutes = require ('./routes/friendRoute')
-const postRoutes = require('./routes/postRoute')
+const friendRoutes = require ('./routes/friendRoute');
+const postRoutes = require('./routes/postRoute');
+const adminRoutes = require('./routes/adminRoute');
 const app = express();
 
 app.use(cors());
@@ -19,6 +20,8 @@ app.use('/', userRoutes); // Use the routes
 app.use('/friend', friendRoutes);
 
 app.use('/posts',postRoutes);
+
+app.use('/admin', adminRoutes);
 
 app.listen(1414, () => {
     console.log('Server is running on port 1414');
