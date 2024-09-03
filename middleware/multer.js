@@ -7,13 +7,16 @@ const storage = multer.diskStorage({
         let uploadPath = './uploads/';
         if (file.fieldname === 'avatar') {
             uploadPath += 'avatar';
-        } else if (file.fieldname === 'banner') {
+        }else if (file.fieldname === 'banner') {
             uploadPath += 'banner';
+        }else if (file.fieldname === 'post'){
+            console.log("Post go here")
+            uploadPath += 'post'
         }
         cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
-        cb(null, `${Date.now()}_${file.originalname}`);
+        cb(null, `${file.fieldname}_${Date.now()}_${file.originalname}`);
     }
 });
 

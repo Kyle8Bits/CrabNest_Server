@@ -117,6 +117,7 @@ const updateUserProfile = async (req, res) => {
         }
 
 
+
         if (req.files.avatar) {
             const avatarFileType = path.extname(req.files.avatar[0].filename).toLowerCase();
             if (!['.jpg', '.jpeg', '.png'].includes(avatarFileType)) {
