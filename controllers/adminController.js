@@ -1,5 +1,6 @@
 
 const User = require('../models/User');
+const Group = require('../models/Group');
 
 const getBanned = async(req,res)=>{
     try{
@@ -71,12 +72,28 @@ const unBanUser = async (req, res) => {
     }
 };
 
-const getGroupReq = async (req,res) =>{
+const getGroupReq = async (req, res) => {
+    try {
+        // Find all groups with status 'Pending'
+        const pendingGroups = await Group.find({ status: 'Pending' });
 
+        // Respond with the list of pending groups
+        res.status(200).json(pendingGroups);
+    } catch (err) {
+        console.error('Error retrieving pending groups:', err.message);
+        res.status(500).json({ error: 'Unable to retrieve pending groups' });
+    }
 }
 
 const decideGrougReq = async (req,res) =>{
-
+    try{
+        
+    }
+    catch(err){
+        console.error('Error approving group:', err.message);
+        res.status(500).json({error: 'Unable to approve group'});
+    }
+    
 }
 
 module.exports = {getBanned, getActive ,banUser, unBanUser, getGroupReq, decideGrougReq};

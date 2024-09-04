@@ -7,6 +7,7 @@ router.get('/bannedUsers', getBanned)
 router.get ('/activeUsers', getActive)
 router.get('/groupRequest', getGroupReq) 
 
+
 router.post('/ban', banUser)
 router.post('/unban', unBanUser)
 router.post('/decide', decideGrougReq)
