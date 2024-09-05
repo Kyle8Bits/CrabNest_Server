@@ -75,6 +75,55 @@ const getAdmins = async (req, res) => {
     }
 }
 
+const addAdmin = async (req, res) => {
+    try {
+        const groupId = req.body.groupId;
+        const username = req.body.username;
+
+        const group = await Group.findOneAndUpdate(
+            { id: groupId },
+            { $addToSet: { admins: username } },
+            {$addToSet: {members: username}},
+            { new: true }
+        );
+
+        if (!group) {
+            return res.status(404).json({ error: 'Group not found' });
+        }
+
+        res.status(200).json(group);
+    } catch (err) {
+        console.error('Error adding admin:', err.message);
+        res.status(500).json({ error: 'Unable to add admin' });
+    }
+};
+
+const removeAdmin = async (req, res) => {
+    try {
+        const groupId = req.body.groupId;
+        const username = req.body.username;
+
+        console.log(groupId, username);
+
+        const group = await Group.findOneAndUpdate(
+            { id: groupId },
+            { $pull: { admins: username } },
+            {$pull: {members: username}},
+            { new: true }
+        );
+
+        if (!group) {
+            return res.status(404).json({ error: 'Group not found' });
+        }
+
+        res.status(200).json({ message: 'Admin removed successfully', group });
+    }
+    catch(err){
+        console.error('Error removing admin:', err.message);
+        res.status(500).json({error: 'Unable to remove admin'});
+    }
+}
+
 const editBanner = async (req, res) => {
     try {
         const groupId = req.body.groupId;
@@ -92,10 +141,73 @@ const editBanner = async (req, res) => {
     }
 }
 
+const getCommunities = async (req, res) => {
+    try {
+        const groups = await Group.find({});
+
+        // Respond with the list of groups
+        res.status(200).json(groups);
+    } catch (err) {
+        console.error('Error getting communities:', err.message);
+        res.status(500).json({ error: 'Unable to get communities' });
+    }
+};
+
+
+const joinGroup = async (req, res) => {
+    try {
+        const groupId = req.body.groupId;
+        const username = req.body.username;
+
+        const group = await Group.findOneAndUpdate( { id: groupId }, { $addToSet: { waitlist: username } }, { new: true });
+
+        res.status(200).json(group);
+    }
+    catch(err){
+        console.error('Error joining group:', err.message);
+        res.status(500).json({error: 'Unable to join group'});
+    }
+}
+
+const leaveGroup = async (req, res) => {
+    try {
+        const groupId = req.body.groupId;
+        const username = req.body.username;
+
+        const group = await Group.findOneAndUpdate( { id: groupId }, { $pull: { members: username } }, { new: true });
+        res.status(200).json(group);
+    }
+    catch(err){
+        console.error('Error leaving group:', err.message);
+        res.status(500).json({error: 'Unable to leave group'});
+    }   
+}
+
+const cancelJoin = async (req, res) => {
+    try {
+        const groupId = req.body.groupId;
+        const username = req.body.username;
+
+        const group = await Group.findOneAndUpdate( { id: groupId }, { $pull: { waitlist: username } }, { new: true });
+        res.status(200).json(group);
+    }
+    catch(err){
+        console.error('Error cancel join group:', err.message);
+        res.status(500).json({error: 'Unable to leave group'});
+    }
+}
+
+
 module.exports = {
     createGroup,
     getGroupForUser,
     getGroupById,
     getAdmins,
-    editBanner
+    editBanner,
+    addAdmin,
+    removeAdmin,
+    getCommunities,
+    joinGroup,
+    leaveGroup,
+    cancelJoin
 }
