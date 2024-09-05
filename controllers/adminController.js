@@ -87,7 +87,14 @@ const getGroupReq = async (req, res) => {
 
 const decideGrougReq = async (req,res) =>{
     try{
+        console.log(req.body.data)
+        const {id, decision} = req.body.data;
         
+        const requestGroup = await Group.findOneAndUpdate(
+            {id: id},
+            {status: decision},
+        );
+
     }
     catch(err){
         console.error('Error approving group:', err.message);

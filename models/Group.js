@@ -23,7 +23,7 @@ const GroupSchema = new mongoose.Schema({
     }, // Group members
     admins: [{type:String}], // Group admins
     posts: [{ type:String, default: null}], // Posts in the group
-    status:{type:String, enum: ['Approved', 'Pending'], required: true, default: 'Pending'}, // Group status
+    status:{type:String, enum: ['Approve', 'Pending', 'Reject'], required: true, default: 'Pending'}, // Group status
     waitlist: [{ type:String, default:null }], // Users waiting to join the group
 
     createdAt: { type: Date, default: Date.now } // Group creation timestamp
