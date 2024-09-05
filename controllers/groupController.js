@@ -26,6 +26,20 @@ const createGroup = async (req, res) => {
     }
 }
 
+const getGroupForUser = async (req, res) => { 
+    try{
+        const admin = req.query.username;
+        const groups = await Group.find({ admins: admin });
+
+        // Respond with the list of groups
+        res.status(200).json(groups);
+    }catch(err){
+        console.error('Error geting group:', err.message);
+        res.status(500).json({error: 'Unable to get group'});
+    }
+}
+
 module.exports = {
-    createGroup
+    createGroup,
+    getGroupForUser
 }
