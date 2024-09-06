@@ -9,6 +9,8 @@ router.delete('/friend-delete', deleteFriendship);
 
 // router.get('/friendRequest', getFriendRequests);
 
+router.get('/getRequest',getFriendRequests);
+
 router.post('/sendRequest', sendFriendRequest);
 
 

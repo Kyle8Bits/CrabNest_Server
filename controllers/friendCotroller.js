@@ -79,7 +79,7 @@ const sendFriendRequest = async (req,res) => {
 
 const getFriendRequests = async (req, res) => {
     try {
-      const { recipient } = req.query; // Get recipient from query parameters
+      const { recipient } = req.body.data; // Get recipient from query parameters
   
       if (!recipient) {
         return res.status(400).json({ message: 'Recipient is required' });
