@@ -10,7 +10,7 @@ function generateIdWithDate() {
 const PostSchema = new mongoose.Schema({
     id: { type: String, default: generateIdWithDate, require: true },
     author: { type: String, require: true }, // Post author
-    content: { type: String, required: true }, // Post content
+    content: { type: String }, // Post content
     images: [String], // Array of image URLs (optional)
     visibility: { type: String, enum: ['Public', 'Friend', 'Group'], default: 'Public' }, // Post visibility
     group: { type: String, default: null }, // Associated group (if applicable)
