@@ -12,7 +12,8 @@ const { createGroup,
     getWaitlist,
     removeAdmin,
     acceptJoiningRequest,
-    rejectJoiningRequest} 
+    rejectJoiningRequest,
+    getPostForGroup }
 = require('../controllers/groupController');
 
 const router = express.Router();
@@ -46,5 +47,7 @@ router.post('/cancelJoin', cancelJoin);
 router.post('/acceptJoiningRequest', acceptJoiningRequest);
 
 router.post('/rejectJoiningRequest', rejectJoiningRequest);
+
+router.get('/getPostForGroup', getPostForGroup);
 
 module.exports = router;

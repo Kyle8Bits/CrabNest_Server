@@ -11,6 +11,8 @@ const storage = multer.diskStorage({
             uploadPath += 'banner';
         }else if (file.fieldname === 'post'){
             uploadPath += 'post'
+        }else if (file.fieldname === 'group'){
+            uploadPath += 'group'
         }
         cb(null, uploadPath);
     },

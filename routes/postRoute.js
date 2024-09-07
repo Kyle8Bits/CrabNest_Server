@@ -8,7 +8,8 @@ const {
     deletePost,
     getPostsForUser,
     giveReact,
-    deleteReact
+    deleteReact,
+    createPostInGroup
 } = require('../controllers/postController');
 
 const upload = require('../middleware/multer')
@@ -25,6 +26,8 @@ router.post('/deleteReact', deleteReact);
 router.post('/createPost', upload.fields([{name: 'post', maxCount: 4}]) ,createPost);
  
 router.put('/updatePost', upload.fields([{name: 'post', maxCount: 4}]),updatePost);
+
+router.post('/createPostInGroup', upload.fields([{name: 'group', maxCount: 4}]), createPostInGroup);
 
 router.delete('/deletePost', deletePost);
 

@@ -22,6 +22,7 @@ const PostSchema = new mongoose.Schema({
     editHistory: [
         {
             content: String,
+            images: [String],
             editedAt: { type: Date, default: Date.now },
         }
     ], // Edit history of the post
