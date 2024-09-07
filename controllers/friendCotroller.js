@@ -1,3 +1,4 @@
+const { request } = require('express');
 const Friendship = require('../models/Friendship');
 const User = require('../models/User');
 
@@ -110,11 +111,22 @@ const getFriendRequests = async (req, res) => {
 
 const acceptFriendRequest = async (req, res) => {
     try {
-      const { requester, recipient } = req.params;
+      const { requester, recipient } = req.body.data;
+      console.log("Requester: ", requester)
+      console.log("Recipient: ",recipient)
+
+      const requesterUsername = requester.username
+      const recipientUsername = recipient.username
+
+      console.log(recipientUsername)
+      console.log(requesterUsername)
+
+
+      
       const friendRequest = await Friendship.findOneAndUpdate(
-        { requester , recipient, status: 'Pending' },
-        { status: 'Accepted', acceptedAt: new Date() },
-        { new: true }
+        { requester: requesterUsername, recipient: recipientUsername, status: 'Pending' }, // Find match
+        { status: 'Accepted', acceptedAt: new Date() }, // Update to accepted
+        { new: true } // Return the updated document
       );
       if (!friendRequest) {
         return res.status(404).json({ message: 'Friend request not found or already processed' });
@@ -128,10 +140,18 @@ const acceptFriendRequest = async (req, res) => {
   // Decline a friend request
 const declineFriendRequest = async (req, res) => {
     try {
-      const { requester, recipient } = req.params;
+      const { requester, recipient } = req.body.data;
+
+      console.log(requester.username);
+      console.log(recipient.username);
+
+      const requesterUsername = requester.username
+      const recipientUsername = recipient.username
+
       const friendRequest = await Friendship.findOneAndDelete(
-        { requester, recipient, status: 'Pending' },
+        { requester: requesterUsername, recipient: recipientUsername, status: 'Pending' }, // Find match
       );
+      
       if (!friendRequest) {
         return res.status(404).json({ message: 'Friend request not found or already processed' });
       }
