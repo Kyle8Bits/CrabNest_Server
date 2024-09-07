@@ -12,7 +12,7 @@ const UserSchema = new mongoose.Schema({
     avatar: { type: String }, // URL or path to the user's avatar image
     info: [
         {
-            role: { type: String, enum: ['work', 'study'], required: true }, // Role: 'work' or 'study'
+            role: { type: String, enum: ['Work at', 'Study at'], required: true }, // Role: 'work' or 'study'
             place: { type: String, required: true } // Associated place (e.g., company or school)
         }
     ],

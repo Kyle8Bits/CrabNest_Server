@@ -12,7 +12,7 @@ const loginUser = async (req, res) => {
         // Use async/await to handle the promise returned by findOne
         const user = await User.findOne({ username });
         if (!user) {
-            console.log(username, password)
+
             return res.status(401).json({ message: 'The username does not exist' });
         }
 
@@ -86,7 +86,8 @@ const isValidPhoneNumber = (phone) => {
 
 const updateUserProfile = async (req, res) => {
     try {
-        const { username, fullName, email, phone, bio } = req.body;
+        console.log(req.body);
+        const { username, fullName, email, phone, bio, departments } = req.body;
         const userName = req.body.username; // Use username to find the user
         
         // Find the user by username
@@ -135,6 +136,13 @@ const updateUserProfile = async (req, res) => {
             user.banner = `/uploads/banner/${req.files.banner[0].filename}`;
         }
 
+        if (departments && Array.isArray(departments)) {
+            user.info = departments.map((item) => ({
+              role: item.roles,
+              place: item.place,
+            }));
+          }
+
         // Save the updated user profile
         await user.save();
 
@@ -148,9 +156,7 @@ const updateUserProfile = async (req, res) => {
 const getUser = async (req, res) => {
     try {
         const username = req.params.username; // Route parameter
-        console.log("displaying user", username)
         const currentUser = req.query.currentUser;  // Query parameter
-        console.log("Curretn user", currentUser)
 
         // Retrieve user information based on the route parameter (username)
         const user = await User.findOne({ username }).select('-password');
@@ -219,4 +225,33 @@ const searchUsers = async (req, res) => {
     }
 };
 
-module.exports = { loginUser, registerUser, updateUserProfile, getUser, searchUsers };
+const changePassword = async (req, res) => {
+    try {
+        const { username, oldPassword, newPassword } = req.body;
+
+        console.log(username, oldPassword, newPassword);
+
+        // Find the user by username
+        const user = await User.findOne({ username: username });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Compare the provided old password with the hashed password in the database
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Incorrect old password' });
+        }
+
+        // Update the user's password in the database (it will be hashed by the pre-save middleware)
+        user.password = newPassword;
+        await user.save();
+
+        res.status(200).json({ message: 'Password changed successfully' });
+    } catch (error) {
+        console.error('Error in changePassword:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+module.exports = { changePassword ,loginUser, registerUser, updateUserProfile, getUser, searchUsers };

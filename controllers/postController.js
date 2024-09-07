@@ -7,7 +7,6 @@ const Friendship = require('../models/Friendship');
 
 // Define the isFriend function within the postController
 async function isFriend(userId1, userId2) {
-    console.log(`Checking friendship between ${userId1} and ${userId2}`);
     const friendship = await Friendship.findOne({
       $or: [
         { requester: userId1, recipient: userId2 },
@@ -302,6 +301,32 @@ const deleteReact = async (req, res) =>{
     }
 }
 
+const getPostOfUser = async (req, res) => {
+    try {
+        // Assuming the query parameter is named 'username'
+        const { username } = req.query;
+        console.log(username);
+        
+        // Ensure that the query is passed correctly
+        const posts = await Post.find({ author: username });
+
+        const result = await Promise.all(posts.map(async (post) => {
+            const user = await User.findOne({ username: post.author }); 
+            return {
+                fullname: user.fullName,
+                avatar: user.avatar,
+                post: post
+            };
+        }));
+        
+        res.json(result);
+    }
+    catch (error) {
+        console.error('Error in getPostOfUser:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
 
 module.exports = {
     // getPosts,
@@ -314,5 +339,6 @@ module.exports = {
     giveReact,
     deleteReact,
     createPostInGroup,
-    createPostInGroup
+    createPostInGroup,
+    getPostOfUser
 };

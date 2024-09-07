@@ -6,6 +6,7 @@ function authMiddleware(req, res, next) {
         console.log('User is authenticated');
         next();
     } else {
+        console.log('User is not authenticated');
         res.status(401).json({ message: 'Unauthorized' });
     }
 }
