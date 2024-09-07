@@ -148,9 +148,8 @@ const updateUserProfile = async (req, res) => {
 const getUser = async (req, res) => {
     try {
         const username = req.params.username; // Route parameter
-        console.log("displaying user", username)
+
         const currentUser = req.query.currentUser;  // Query parameter
-        console.log("Curretn user", currentUser)
 
         // Retrieve user information based on the route parameter (username)
         const user = await User.findOne({ username }).select('-password');

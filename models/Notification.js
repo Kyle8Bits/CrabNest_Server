@@ -1,12 +1,13 @@
 const mongoose = require('mongoose');
 
 const NotificationSchema = new mongoose.Schema({
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // User receiving the notification
+    user: { type: String, required: true }, // User receiving the notification
 
-    type: { type: String, enum: ['FriendRequest', 'Reaction', 'GroupApproval', 'Comment'], required: true }, // Notification type
+    type: { type: String, enum: ['FriendRequest', 'Reaction', 'GroupApproval'], required: true }, // Notification type
     message: { type: String, required: true }, // Notification message
 
-    read: { type: Boolean, default: false }, // Read status
+    from: { type: String, required: true },
+
 
     createdAt: { type: Date, default: Date.now } // Notification creation timestamp
 },{collection: 'notification'});
