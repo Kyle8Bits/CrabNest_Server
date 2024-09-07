@@ -1,5 +1,6 @@
 const Group = require('../models/Group');
 const User = require('../models/User');
+const Post = require('../models/Post');
 const mongoose = require('mongoose');
 
 const createGroup = async (req, res) => {
@@ -239,6 +240,28 @@ const rejectJoiningRequest = async (req, res) => {
     }
 }
 
+const getPostForGroup = async (req, res) => {
+    try {
+        const groupId = req.query.groupId;
+        const posts = await Post.find({ group: groupId });
+
+        const result = await Promise.all(posts.map(async (post) => {
+            const user = await User.findOne({ username: post.author }); 
+            return {
+                fullname: user.fullName,
+                avatar: user.avatar,
+                post: post
+            };
+        }));
+
+        console.log(result);
+        return res.status(200).json(result);
+    }
+    catch(err){
+        console.error('Error getting post for group:', err.message);
+        res.status(500).json({error: 'Unable to get post for group'});
+    }
+}
 
 module.exports = {
     createGroup,
@@ -254,5 +277,6 @@ module.exports = {
     cancelJoin,
     getWaitlist,
     acceptJoiningRequest,
-    rejectJoiningRequest
+    rejectJoiningRequest,
+    getPostForGroup
 }

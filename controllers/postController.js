@@ -1,5 +1,6 @@
 const Post = require('../models/Post');
 const User = require('../models/User');
+const Group = require('../models/Group');
 const mongoose = require('mongoose');
 // Assuming you have a Friendship model defined with a method to check friendship
 const Friendship = require('../models/Friendship');
@@ -63,7 +64,6 @@ async function isFriend(userId1, userId2) {
 // Get a single post by ID
 const getPostById = async (req, res) => {
     try {
-        console.log(req.query.postId)
         const postId = req.query.postId;
 
         const post = await Post.findOne({ id: postId });
@@ -83,7 +83,9 @@ const getPostById = async (req, res) => {
 // // Create a new post
 const createPost = async (req, res) => {
     try {
-
+        console.log(req);
+        const postData = req.body;
+        console.log(postData);
         // Extract data from request body
         const { author, content, visibility, group } = req.body;
 
@@ -105,10 +107,6 @@ const createPost = async (req, res) => {
                 images.push(`/uploads/post/${file.filename}`);
             });
         }
-
-        console.log(images)
-        
-        console.log(images)
         // Create a new Post instance with data from the request body
         // Any field not provided will use the default values from the schema
         const newPost = new Post({
@@ -131,6 +129,61 @@ const createPost = async (req, res) => {
     }
 };
 
+
+const createPostInGroup = async (req, res) => {
+    try {
+        const groupId = req.query.groupId;
+        const postData = req.body;
+        const { author, content} = req.body;
+
+        const group = await Group.findOne({ id: groupId });
+
+        if (!group) {
+            return res.status(404).json({ message: 'Group not found' });
+        }
+
+        const date = new Date();
+        const day = (`0${date.getDate()}`).slice(-2);
+        const year = date.getFullYear();
+        const monthNames = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+        const month = monthNames[date.getMonth()];
+        const formattedDate = `${day} ${month} ${year}`;
+
+
+        const images = [];
+
+        if (req.files && req.files.group) {
+            req.files.group.forEach(file => {
+                images.push(`/uploads/group/${file.filename}`);
+            });
+        }
+
+        const newPost = new Post({
+            author,
+            content,
+            images, // This will default to an empty array if not provided
+            visibility: 'Group', // This will default to 'Public' if not provided
+            group: groupId,// This will default to null if not provided
+            createdAt: formattedDate, 
+        });
+
+        const savedPost = await newPost.save();
+
+        group.posts.push(savedPost.id);
+        await group.save();
+
+
+        res.status(201).json(savedPost);
+    }
+    catch(err){
+        console.error(err);
+        res.status(500).json({msg:"Sever error handling reaction"})
+    }
+}
+
 // Update an existing post by ID
 const updatePost = async (req, res) => {
     try {
@@ -138,8 +191,11 @@ const updatePost = async (req, res) => {
 
         const { author, content, visibility, group } = req.body;
 
-        console.log(req.files)
-        console.log(req.body.post)
+        const post = await Post.findOne({ id: postId });
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
+        }
+
         const oldImage = req.body.post
 
         const images = oldImage ? [oldImage] : [];
@@ -150,25 +206,23 @@ const updatePost = async (req, res) => {
             });
         }
         
-        const updatedPost = await Post.findOneAndUpdate(
-            { id: postId },
-            {
-                author,
-                content,
-                visibility,
-                group,
-                images: images // Append new images to the existing array
-            },
-            { new: true } // Return the updated document
-        );
+        post.editHistory.push({
+            content: post.content,      // Save the old content
+            images: post.images,        // Save the old images
+            editedAt: new Date(),       // Save the timestamp
+        });
 
-        if (!updatedPost) {
-            return res.status(404).json({ message: 'Post not found' });
-        }
+
+        post.author = author;
+        post.content = content;
+        post.visibility = visibility;
+        post.group = group;
+        post.images = images;  // Set the updated images
+        post.edited = true; 
+
+       await post.save();
 
         res.status(200).json(updatedPost);
-
-
 
     } catch (error) {
         console.error('Error updating post:', error.message);
@@ -259,4 +313,6 @@ module.exports = {
     getPostsForUser,
     giveReact,
     deleteReact,
+    createPostInGroup,
+    createPostInGroup
 };
