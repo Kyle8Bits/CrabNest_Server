@@ -79,26 +79,68 @@ const sendFriendRequest = async (req,res) => {
 
 const getFriendRequests = async (req, res) => {
     try {
-      const { recipient } = req.body.data; // Get recipient from query parameters
-  
-      if (!recipient) {
-        return res.status(400).json({ message: 'Recipient is required' });
-      }
-  
-      // Fetch all pending friend requests for the recipient
-      const friendRequests = await Friendship.find({ recipient, status: 'Pending' });
-  
-      if (!friendRequests.length) {
-        return res.status(404).json({ message: 'No friend requests found' });
-      }
-  
-      res.status(200).json(friendRequests);
+        const { recipient } = req.query; // Get recipient (current user) from query parameters
+
+        if (!recipient) {
+            return res.status(400).json({ message: 'Recipient is required' });
+        }
+
+        // Find all pending friend requests where the recipient is the current user
+        const pendingRequests = await Friendship.find({
+            recipient,
+            status: 'Pending'
+        });
+
+        // Extract the list of requesters' usernames
+        const requesterUsernames = pendingRequests.map(friendship => {
+            return friendship.requester;
+        });
+
+        // Find all user details for these requester usernames
+        const requesters = await User.find({ username: { $in: requesterUsernames } });
+
+        // Respond with the found requesters' user details in JSON format
+        res.json(requesters);
     } catch (error) {
-      console.error('Error in getFriendRequests:', error);
-      res.status(500).json({ message: 'Internal server error' });
+        console.error('Error in getFriendRequests:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
-  };
+};
+
+
+const acceptFriendRequest = async (req, res) => {
+    try {
+      const { requester, recipient } = req.params;
+      const friendRequest = await Friendship.findOneAndUpdate(
+        { requester , recipient, status: 'Pending' },
+        { status: 'Accepted', acceptedAt: new Date() },
+        { new: true }
+      );
+      if (!friendRequest) {
+        return res.status(404).json({ message: 'Friend request not found or already processed' });
+      }
+      res.status(200).json({ message: 'Friend request accepted', friendRequest });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+};
+  
+  // Decline a friend request
+const declineFriendRequest = async (req, res) => {
+    try {
+      const { requester, recipient } = req.params;
+      const friendRequest = await Friendship.findOneAndDelete(
+        { requester, recipient, status: 'Pending' },
+      );
+      if (!friendRequest) {
+        return res.status(404).json({ message: 'Friend request not found or already processed' });
+      }
+      res.status(200).json({ message: 'Friend request declined', friendRequest });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+};
+  
   
 
-
-module.exports = { getFriends, deleteFriendship,  getFriendRequests , sendFriendRequest};
+module.exports = { getFriends, deleteFriendship,  getFriendRequests , sendFriendRequest,acceptFriendRequest,declineFriendRequest};
