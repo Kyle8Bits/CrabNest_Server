@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 
 const createGroup = async (req, res) => {
     try{
-        console.log(req.body);
         // Create a new group using the request body
         const newGroup = new Group({
             name: req.body.data.groupName,
@@ -54,12 +53,29 @@ const getGroupById = async (req, res) => {
     }
 }
 
+const getWaitlist = async (req, res) => { 
+    try {
+        const groupId = req.query.groupId;
+        const group = await Group.findOne({ id: groupId });
+
+        if (!group) {
+            return res.status(404).json({ error: 'Group not found' });
+        }
+
+        const userIds = group.waitlist;
+        const users = await User.find({ username: { $in: userIds } });
+
+        res.status(200).json(users);
+    } catch (err) {
+        console.error('Error getting waitlist:', err.message);
+        res.status(500).json({ error: 'Unable to get waitlist' });
+    }   
+}
 
 const getAdmins = async (req, res) => {
     try {
         const groupId = req.query.groupId;
         const group = await Group.findOne({ id: groupId });
-        console.log(groupId);
 
         if (!group) {
             return res.status(404).json({ error: 'Group not found' });
@@ -102,8 +118,6 @@ const removeAdmin = async (req, res) => {
     try {
         const groupId = req.body.groupId;
         const username = req.body.username;
-
-        console.log(groupId, username);
 
         const group = await Group.findOneAndUpdate(
             { id: groupId },
@@ -197,6 +211,34 @@ const cancelJoin = async (req, res) => {
     }
 }
 
+const acceptJoiningRequest = async (req, res) => {
+    try {
+        const groupId = req.body.groupId;
+        const username = req.body.username;
+
+        const group = await Group.findOneAndUpdate( { id: groupId }, { $pull: { waitlist: username }, $addToSet: { members: username } }, { new: true });
+
+        return res.status(200).json(group);
+    }
+    catch(err){
+        console.error('Error accepting join request:', err.message);
+        res.status(500).json({error: 'Unable to accept join request'});
+    }
+}
+
+const rejectJoiningRequest = async (req, res) => {
+    try {
+        const groupId = req.body.groupId;
+        const username = req.body.username;
+
+        const group = await Group.findOneAndUpdate( { id: groupId }, { $pull: { waitlist: username } }, { new: true });
+    }
+    catch(err){
+        console.error('Error accepting join request:', err.message);
+        res.status(500).json({error: 'Unable to accept join request'});
+    }
+}
+
 
 module.exports = {
     createGroup,
@@ -209,5 +251,8 @@ module.exports = {
     getCommunities,
     joinGroup,
     leaveGroup,
-    cancelJoin
+    cancelJoin,
+    getWaitlist,
+    acceptJoiningRequest,
+    rejectJoiningRequest
 }
