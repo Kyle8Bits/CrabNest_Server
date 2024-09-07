@@ -1,5 +1,5 @@
 const express = require('express');
-const { getFriends, deleteFriendship,  getFriendRequests , sendFriendRequest,acceptFriendRequest,declineFriendRequest} = require('../controllers/friendCotroller');
+const { getFriends, deleteFriendship,  getFriendRequests , sendFriendRequest,acceptFriendRequest,declineFriendRequest} = require('../controllers/friendController');
 
 const router = express.Router();
 

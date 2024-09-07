@@ -3,7 +3,7 @@
 const User = require('../models/User'); // Assuming you have a User model defined
 const bcrypt = require('bcrypt');
 const path = require('path');
-const {isFriend} = require('./postController')
+const { getFriendshipStatus } = require('./friendController')
 
 const loginUser = async (req, res) => {
     try {
@@ -167,7 +167,7 @@ const getUser = async (req, res) => {
         }
 
         // Check friendship status between the current user and the requested user
-        const friendshipStatus = await isFriend(username, currentUser);
+        const friendshipStatus = await getFriendshipStatus(currentUser, username);
 
 
 

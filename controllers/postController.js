@@ -1,6 +1,7 @@
 const Post = require('../models/Post');
 const User = require('../models/User');
 const Group = require('../models/Group');
+const Notification = require('../models/Notification');
 const mongoose = require('mongoose');
 // Assuming you have a Friendship model defined with a method to check friendship
 const Friendship = require('../models/Friendship');
@@ -221,7 +222,7 @@ const updatePost = async (req, res) => {
 
        await post.save();
 
-        res.status(200).json(updatedPost);
+        res.status(200).json(post);
 
     } catch (error) {
         console.error('Error updating post:', error.message);
@@ -250,11 +251,9 @@ const deletePost = async (req, res) => {
 const giveReact = async (req, res)=>{
     try{
         const { id, currentUser } = req.body.data;
-        console.log(id, currentUser)
         const postId = id.postId;
-        console.log(postId)
         // Find the post by id and update the reaction by 1
-        const result = await Post.findOneAndUpdate(
+        const post = await Post.findOneAndUpdate(
             { id: postId }, // Find the document with the specified _id
             { 
                 $inc: { reactions: 1 }, // Increment the reactions field by 1
@@ -263,12 +262,42 @@ const giveReact = async (req, res)=>{
             { new: true } // Return the updated document
         );
 
-        if (result) {
-            res.status(200).json({ message: 'Reaction plus 1' });
-        } else {
-            console.log("Post not found")
-            res.status(404).json({ message: `Cannot find this post` });
+        if (!post) {
+            return res.status(404).json({ message: `Cannot find this post` });
         }
+
+
+        if (currentUser === post.author) {
+            return res.status(200).json({ message: 'Reaction added but no notification needed' });
+        }
+        
+        const postAuthor = await User.findOne({ username: post.author });
+        if (!postAuthor) {
+        
+            return res.status(404).json({ message: 'Post author not found' });
+        }
+
+        // Find the full name of the current user (the one who reacted to the post)
+        const reactingUser = await User.findOne({ username: currentUser });
+        if (!reactingUser) {
+            console.log("Reacting user not found");
+            return res.status(404).json({ message: 'Reacting user not found' });
+        }
+
+        // Create a new notification
+        const newNotification = new Notification({
+            user: postAuthor.username, // Notify the post author
+            from: reactingUser.username, // The full name of the user who reacted
+            type: 'Reaction',
+            message: `${reactingUser.fullName} reacted to your post`, // Custom message for the notification
+        });
+
+        console.log("Save noti")
+        // Save the notification
+        await newNotification.save();
+
+        res.status(200).json({ message: 'Reaction added and notification created' });
+        
     }catch(err){
         console.error(err);
         res.status(500).json({msg:"Sever error handling reaction"})

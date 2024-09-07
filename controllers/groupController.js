@@ -1,6 +1,7 @@
 const Group = require('../models/Group');
 const User = require('../models/User');
 const Post = require('../models/Post');
+const Notification = require('../models/Notification');
 const mongoose = require('mongoose');
 
 const createGroup = async (req, res) => {
@@ -30,7 +31,11 @@ const createGroup = async (req, res) => {
 const getGroupForUser = async (req, res) => { 
     try{
         const admin = req.query.username;
-        const groups = await Group.find({ admins: admin });
+        const groups = await Group.find({ 
+            admins: admin, 
+            status: 'Approve'  // Only return groups with status 'Accepted'
+        });
+
 
         // Respond with the list of groups
         res.status(200).json(groups);
@@ -158,7 +163,10 @@ const editBanner = async (req, res) => {
 
 const getCommunities = async (req, res) => {
     try {
-        const groups = await Group.find({});
+        const groups = await Group.find({ 
+            status: 'Approve'  // Only return groups with status 'Accepted'
+        });
+
 
         // Respond with the list of groups
         res.status(200).json(groups);
@@ -219,7 +227,20 @@ const acceptJoiningRequest = async (req, res) => {
 
         const group = await Group.findOneAndUpdate( { id: groupId }, { $pull: { waitlist: username }, $addToSet: { members: username } }, { new: true });
 
-        return res.status(200).json(group);
+        if (!group) {
+            return res.status(404).json({ message: 'Group not found' });
+        }
+
+        const notification = new Notification({
+            user: username, // The user who is being accepted
+            from: group.name,
+            type: 'GroupApproval',
+            message: `You have been accepted into the group ${group.name}`
+        });
+
+        await notification.save();
+
+        return res.status(200).json({ message: `${username} has been added to the group`, group });
     }
     catch(err){
         console.error('Error accepting join request:', err.message);
@@ -233,6 +254,21 @@ const rejectJoiningRequest = async (req, res) => {
         const username = req.body.username;
 
         const group = await Group.findOneAndUpdate( { id: groupId }, { $pull: { waitlist: username } }, { new: true });
+
+        if (!group) {
+            return res.status(404).json({ message: 'Group not found' });
+        }
+
+        const notification = new Notification({
+            user: username, // The user who is being rejected
+            from: group.name, // Assuming `group.admin` holds the admin's username or full name
+            type: 'GroupApproval',
+            message: `Your request to join the group ${group.name} has been rejected`
+        });
+
+        await notification.save();
+
+        return res.status(200).json({ message: `${username}'s join request has been rejected`, group });
     }
     catch(err){
         console.error('Error accepting join request:', err.message);
