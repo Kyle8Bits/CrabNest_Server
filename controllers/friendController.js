@@ -63,8 +63,6 @@ const deleteFriendship = async (req, res) => {
             ]
         });
 
-        console.log(requester, recipient)
-
         if (!result) {
             return res.status(404).json({ message: 'Friendship not found' });
         }
@@ -78,8 +76,7 @@ const deleteFriendship = async (req, res) => {
 
 const sendFriendRequest = async (req,res) => {
     try {
-        console.log(req.body.data.requester);
-    
+
         const {requester, recipient} = req.body.data;
         const existingRequest = await Friendship.findOne({requester,recipient});
         if (existingRequest){
@@ -153,17 +150,10 @@ const getFriendRequests = async (req, res) => {
 const acceptFriendRequest = async (req, res) => {
     try {
       const { requester, recipient } = req.body.data;
-      console.log("Requester: ", requester)
-      console.log("Recipient: ",recipient)
 
       const requesterUsername = requester.username
       const recipientUsername = recipient.username
 
-      console.log(recipientUsername)
-      console.log(requesterUsername)
-
-
-      
       const friendRequest = await Friendship.findOneAndUpdate(
         { requester: requesterUsername, recipient: recipientUsername, status: 'Pending' }, // Find match
         { status: 'Accepted', acceptedAt: new Date() }, // Update to accepted
@@ -201,9 +191,6 @@ const acceptFriendRequest = async (req, res) => {
 const declineFriendRequest = async (req, res) => {
     try {
       const { requester, recipient } = req.body.data;
-
-      console.log(requester.username);
-      console.log(recipient.username);
 
       const requesterUsername = requester.username
       const recipientUsername = recipient.username

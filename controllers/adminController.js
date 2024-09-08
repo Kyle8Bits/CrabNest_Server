@@ -28,7 +28,6 @@ const getActive = async(req,res)=>{
 const banUser = async(req,res) =>{
     try {
         const { username } = req.body.data.username;
-        console.log(req.body.data.username)
 
         // Find the user by username and update the isSuspended field to false
         const result = await User.findOneAndUpdate(
@@ -52,7 +51,6 @@ const banUser = async(req,res) =>{
 const unBanUser = async (req, res) => {
     try {
         const { username } = req.body.data.username;
-        console.log(req.body.data.username)
 
         // Find the user by username and update the isSuspended field to false
         const result = await User.findOneAndUpdate(
@@ -88,7 +86,6 @@ const getGroupReq = async (req, res) => {
 
 const decideGrougReq = async (req,res) =>{
     try{
-        console.log(req.body.data)
         const {id, decision} = req.body.data;
 
         console.log(decision)
