@@ -234,7 +234,6 @@ const changePassword = async (req, res) => {
     try {
         const { username, oldPassword, newPassword } = req.body;
 
-        console.log(username, oldPassword, newPassword);
 
         // Find the user by username
         const user = await User.findOne({ username: username });

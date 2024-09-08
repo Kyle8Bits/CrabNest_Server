@@ -310,7 +310,6 @@ const getPostForGroup = async (req, res) => {
             };
         }));
 
-        console.log(result);
         return res.status(200).json(result);
     }
     catch(err){

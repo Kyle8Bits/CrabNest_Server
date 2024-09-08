@@ -23,27 +23,44 @@ async function isFriend(userId1, userId2) {
   const getPostsForUser = async (req, res) => {
     try {
         const currentUser = req.headers.username;
-        let publicPosts = await Post.find({ visibility: 'Public', group: null});
 
-        // Get all friend posts
-        let friendPosts = await Post.find({ visibility: 'Friend', group: null });
+        // Check if the current user is an admin
+        const currentUserDetails = await User.findOne({ username: currentUser });
 
-
-        let ownFriendPosts = await Post.find({ author: currentUser, visibility: 'Friend', group: null });
-
-        // Filter friend posts by checking if the author is a friend of the current user
-        let postsFromFriends = [];
-
-        for (let post of friendPosts) {
-            if (await isFriend(currentUser, post.author)) {
-                postsFromFriends.push(post);
-            }
+        if (!currentUserDetails) {
+            return res.status(404).json({ error: 'User not found' });
         }
 
-        const allPosts = [...publicPosts, ...postsFromFriends, ...ownFriendPosts];
+        let allPosts = [];
 
+        // If the user is an admin, fetch all posts
+        if (currentUserDetails.isAdmin) {
+            allPosts = await Post.find({ group: null });
+        } else {
+            // Get public posts
+            let publicPosts = await Post.find({ visibility: 'Public', group: null });
+
+            // Get all friend posts
+            let friendPosts = await Post.find({ visibility: 'Friend', group: null });
+
+            // Get posts authored by the current user
+            let ownFriendPosts = await Post.find({ author: currentUser, visibility: 'Friend', group: null });
+
+            // Filter friend posts by checking if the author is a friend of the current user
+            let postsFromFriends = [];
+            for (let post of friendPosts) {
+                if (await isFriend(currentUser, post.author)) {
+                    postsFromFriends.push(post);
+                }
+            }
+
+            // Combine public posts, friend's posts, and user's own friend posts
+            allPosts = [...publicPosts, ...postsFromFriends, ...ownFriendPosts];
+        }
+
+        // Prepare the final result, fetching user information for each post
         const result = await Promise.all(allPosts.map(async (post) => {
-            const user = await User.findOne({ username: post.author }); 
+            const user = await User.findOne({ username: post.author });
             return {
                 fullname: user.fullName,
                 avatar: user.avatar,
@@ -51,14 +68,14 @@ async function isFriend(userId1, userId2) {
             };
         }));
 
-
+        // Return the filtered or full list of posts
         res.json(result);
+
     } catch (error) {
         console.error('Error fetching posts:', error.message);
         res.status(500).json({ error: 'Unable to fetch posts' });
     }
 };
-
 // Get a single post by ID
 const getPostById = async (req, res) => {
     try {
@@ -185,7 +202,6 @@ const createPostInGroup = async (req, res) => {
 const updatePost = async (req, res) => {
     try {
         const postId = req.query.postId;
-
         const { author, content, visibility, group } = req.body;
 
         const post = await Post.findOne({ id: postId });
@@ -193,9 +209,15 @@ const updatePost = async (req, res) => {
             return res.status(404).json({ message: 'Post not found' });
         }
 
-        const oldImage = req.body.post
+        let images = [];
 
-        const images = oldImage ? [oldImage] : [];
+        // Check if the old image is an array or a single value and push it accordingly
+        const oldImages = req.body.post;  // This may be a string or an array
+        if (Array.isArray(oldImages)) {
+            images = oldImages;  // Directly set images as oldImages if it's already an array
+        } else if (typeof oldImages === 'string') {
+            images.push(oldImages);  // If it's a single string, push it into images
+        }
 
         if (req.files && req.files.post) {
             req.files.post.forEach(file => {
