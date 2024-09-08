@@ -7,7 +7,6 @@ const Notification = require('../models/Notification');
 exports.getCommentsForPost = async (req, res) => {
     try {
         const { postId } = req.query;
-        console.log(postId)
         const comments = await Comment.find({ post: postId }).populate('author', 'name avatar');
         res.status(200).json(comments);
     } catch (err) {

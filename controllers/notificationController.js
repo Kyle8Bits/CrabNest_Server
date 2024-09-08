@@ -3,7 +3,6 @@ const Notification = require('../models/Notification'); // Assuming your Notific
 const User = require('../models/User');
 
 const fetchNotifications = async (req, res) => {
-    console.log(req.query);
     const { username } = req.query;  // Extract the username from query params
     try {
       const notifications = await Notification.find({ user: username });

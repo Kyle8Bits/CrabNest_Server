@@ -83,9 +83,8 @@ const getPostById = async (req, res) => {
 // // Create a new post
 const createPost = async (req, res) => {
     try {
-        console.log(req);
+        
         const postData = req.body;
-        console.log(postData);
         // Extract data from request body
         const { author, content, visibility, group } = req.body;
 
@@ -334,7 +333,6 @@ const getPostOfUser = async (req, res) => {
     try {
         // Assuming the query parameter is named 'username'
         const { username } = req.query;
-        console.log(username);
         
         // Ensure that the query is passed correctly
         const posts = await Post.find({ author: username });
