@@ -7,7 +7,7 @@ function validateLoginData(req, res, next) {
     }
     if (password.length < 6) {
         console.log("Password not enough length")
-        return res.status(400).json({ message: 'Password must be at least 1 characters long' });
+        return res.status(400).json({ message: 'Password must be at least 6 characters long' });
     }
 
     console.log("valid password + username");
