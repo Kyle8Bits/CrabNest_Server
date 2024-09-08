@@ -53,6 +53,11 @@ const registerUser = async (req, res) => {
             return res.status(400).json({ message: 'This phone number already used' });
         }
 
+        const validPassword = password.length >= 6;;
+        if (!validPassword) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+        }
+
         // Define the default avatar and banner paths
         const defaultAvatar = '/uploads/avatar/default-avatar.jpg';
         const defaultBanner = '/uploads/banner/default-banner.jpg';
