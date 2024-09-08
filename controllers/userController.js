@@ -86,7 +86,6 @@ const isValidPhoneNumber = (phone) => {
 
 const updateUserProfile = async (req, res) => {
     try {
-        console.log(req.body);
         const { username, fullName, email, phone, bio, departments } = req.body;
         const userName = req.body.username; // Use username to find the user
         

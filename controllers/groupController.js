@@ -184,6 +184,26 @@ const joinGroup = async (req, res) => {
 
         const group = await Group.findOneAndUpdate( { id: groupId }, { $addToSet: { waitlist: username } }, { new: true });
 
+        if (!group) {
+            return res.status(404).json({ message: 'Group not found' });
+        }
+
+        const adminUsernames = group.admins; // Assuming 'admins' is an array of usernames
+
+        // Create notifications for each admin
+        const notifications = adminUsernames.map(adminUsername => {
+            return new Notification({
+                user: adminUsername, // The admin receiving the notification
+                from: username, // The user who requested to join the group
+                type: 'JoinGroupRequest', // Notification type
+                message: `${username} has requested to join the group ${group.name}.`,
+            });
+        });
+
+        // Save all notifications
+        await Promise.all(notifications.map(notification => notification.save()));
+
+        // Return the updated group with the user added to the waitlist
         res.status(200).json(group);
     }
     catch(err){
@@ -299,6 +319,59 @@ const getPostForGroup = async (req, res) => {
     }
 }
 
+const getMembers = async (req, res) => {
+    try {
+        const groupId = req.query.groupId;
+
+        const group = await Group.findOne({ id: groupId });
+
+        if (!group) {
+            return res.status(404).json({ error: 'Group not found' });
+        }
+
+        // Fetch users whose usernames are in the members list of the group
+        const users = await User.find({ username: { $in: group.members } });
+
+        // Respond with the group and the array of members
+        res.status(200).json(
+            users // List of users whose usernames are in the group.members
+        );
+        
+    }
+    catch(err){
+        console.error('Error getting members:', err.message);
+        res.status(500).json({error: 'Unable to get members'});
+    }
+}
+
+const kickMember = async (req, res) => {
+    try {
+        const groupId = req.body.groupId;
+        const username = req.body.username;
+
+        // Find the group and remove the member in one step using $pull
+        const group = await Group.findOneAndUpdate(
+            { id: groupId },
+            { $pull: { members: username } }, // Removes the user from the members array
+            { new: true } // Return the updated group after modification
+        );
+
+        if (!group) {
+            return res.status(404).json({ error: 'Group not found' });
+        }
+
+        // Check if the user was actually in the members 
+
+        // Respond with success message
+        res.status(200).json({ message: `User ${username} has been kicked from the group` });
+
+    }
+    catch(err){
+        console.error('Error kicking member:', err.message);
+        res.status(500).json({error: 'Unable to kick member'});
+    }
+}
+
 module.exports = {
     createGroup,
     getGroupForUser,
@@ -314,5 +387,7 @@ module.exports = {
     getWaitlist,
     acceptJoiningRequest,
     rejectJoiningRequest,
-    getPostForGroup
+    getPostForGroup,
+    getMembers,
+    kickMember
 }

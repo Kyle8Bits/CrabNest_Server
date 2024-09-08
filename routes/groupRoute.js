@@ -13,7 +13,9 @@ const { createGroup,
     removeAdmin,
     acceptJoiningRequest,
     rejectJoiningRequest,
-    getPostForGroup }
+    getPostForGroup,
+    getMembers,
+    kickMember}
 = require('../controllers/groupController');
 
 const router = express.Router();
@@ -49,5 +51,9 @@ router.post('/acceptJoiningRequest', acceptJoiningRequest);
 router.post('/rejectJoiningRequest', rejectJoiningRequest);
 
 router.get('/getPostForGroup', getPostForGroup);
+
+router.get('/getMember', getMembers);
+
+router.post('/kickMember', kickMember);
 
 module.exports = router;

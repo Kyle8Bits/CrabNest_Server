@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const NotificationSchema = new mongoose.Schema({
     user: { type: String, required: true }, // User receiving the notification
 
-    type: { type: String, enum: ['FriendRequest', 'Reaction', 'GroupApproval', 'FriendRequestAccepted'], required: true }, // Notification type
+    type: { type: String, enum: ['FriendRequest', 'Reaction', 'GroupApproval', 'FriendRequestAccepted', 'Comment', 'GroupCreationApprovel', 'JoinGroupRequest', 'GroupRejection'], required: true }, // Notification type
     message: { type: String, required: true }, // Notification message
 
     from: { type: String, required: true },

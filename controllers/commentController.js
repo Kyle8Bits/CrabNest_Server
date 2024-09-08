@@ -1,6 +1,7 @@
 const Comment = require('../models/Comment');
 const Post = require('../models/Post');
 const mongoose = require('mongoose');
+const Notification = require('../models/Notification');
 
 // Fetch all comments for a specific post
 exports.getCommentsForPost = async (req, res) => {
@@ -17,8 +18,7 @@ exports.getCommentsForPost = async (req, res) => {
 // Add a comment to a specific post
 exports.addCommentToPost = async (req, res) => {
     try {
-        const {postId} = req.query;
-        console.log(req.body);
+        const {postId, username} = req.query;
 
         const comment = new Comment({
             post: postId,
@@ -31,9 +31,19 @@ exports.addCommentToPost = async (req, res) => {
         const savedComment = await comment.save();
 
         // Add the comment to the post's comments array
-        await Post.findOneAndUpdate( {id: postId}, {
+        const post = await Post.findOneAndUpdate({ id: postId }, {
             $push: { comments: savedComment._id }
         });
+
+
+        const notification = new Notification({
+            user: post.author, // The post author will receive the notification
+            type: 'Comment',
+            message: `${req.body.authorUsername} commented on your post.`,
+            from: req.body.author // The author of the comment
+        });
+
+          await notification.save();
 
         res.status(201).json(savedComment);
     } catch (err) {
@@ -46,7 +56,6 @@ exports.deleteComment = async (req, res) => {
     try{
         const postId = req.query.postId
         const cmtId = req.query.commentId
-        console.log("What ctrl get", postId, cmtId);
 
         const deleteCmt = await Comment.findByIdAndDelete(cmtId)
 
@@ -89,6 +98,8 @@ exports.editComment = async (req, res)=>{
         if (!updatedComment) {
             return res.status(404).send({ message: 'Comment not found' });
         }
+
+        
     
         res.status(200).send(updatedComment);
         

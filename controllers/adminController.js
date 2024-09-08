@@ -1,6 +1,7 @@
 
 const User = require('../models/User');
 const Group = require('../models/Group');
+const Notification = require('../models/Notification');
 
 const getBanned = async(req,res)=>{
     try{
@@ -89,11 +90,47 @@ const decideGrougReq = async (req,res) =>{
     try{
         console.log(req.body.data)
         const {id, decision} = req.body.data;
+
+        console.log(decision)
         
         const requestGroup = await Group.findOneAndUpdate(
             {id: id},
             {status: decision},
+            { new: true }
         );
+
+
+        if (!requestGroup) {
+            return res.status(404).json({ message: 'Group not found' });
+        }
+
+        // Find the admin or the user who made the group request
+        const groupAdmin = await User.findOne({ username: requestGroup.admins });
+
+        if (!groupAdmin) {
+            return res.status(404).json({ message: 'Group admin not found' });
+        }
+
+        // Create the notification message based on the decision
+        let message;
+        if (decision === 'Approve') {
+            message = `Your group ${requestGroup.name} has been approved.`;
+        } else if (decision === 'Reject') {
+            message = `Your group ${requestGroup.name} has been rejected.`;
+        }
+
+        // Create a new notification for the group admin
+        const notification = new Notification({
+            user: groupAdmin.username, // Notify the admin of the group
+            from: 'Crabnest admin', // Could be the system or another user
+            type: decision === 'Approve' ? 'GroupCreationApprovel' : 'GroupRejection', // Use appropriate type
+            message: message, // Message based on approval or rejection
+        });
+
+        // Save the notification
+        await notification.save();
+
+        res.status(200).json({ message: `Group ${decision}`, group: requestGroup });
 
     }
     catch(err){

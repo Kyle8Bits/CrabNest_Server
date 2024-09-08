@@ -9,7 +9,7 @@ const fetchNotifications = async (req, res) => {
       const notifications = await Notification.find({ user: username });
        // Iterate through each notification and populate user avatar if applicable
        const enrichedNotifications = await Promise.all(notifications.map(async (notification) => {
-        if (notification.type === 'FriendRequest' || notification.type === 'Reaction' || notification.type === 'FriendRequestAccepted') {
+        if (notification.type === 'FriendRequest' || notification.type === 'Reaction' || notification.type === 'FriendRequestAccepted' || notification.type === 'Comment'|| notification.type === 'GroupCreationApprovel'|| notification.type === 'JoinGroupRequest'|| notification.type === 'JoinGroupRequest') {  
             // Fetch avatar for the user in the `from` field
             const user = await User.findOne({ username: notification.from });
             if (user) {
