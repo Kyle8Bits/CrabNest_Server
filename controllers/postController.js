@@ -23,7 +23,6 @@ async function isFriend(userId1, userId2) {
   const getPostsForUser = async (req, res) => {
     try {
         const currentUser = req.headers.username;
-
         let publicPosts = await Post.find({ visibility: 'Public', group: null});
 
         // Get all friend posts
@@ -37,7 +36,6 @@ async function isFriend(userId1, userId2) {
 
         for (let post of friendPosts) {
             if (await isFriend(currentUser, post.author)) {
-
                 postsFromFriends.push(post);
             }
         }
